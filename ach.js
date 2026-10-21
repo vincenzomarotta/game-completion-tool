@@ -6,13 +6,15 @@ const ACH_UI = (() => {
   const S = {
     it: {
       done: "Fatto in questo salvataggio", todo: "Non ancora in questo salvataggio",
-      reveal: "Obiettivo segreto: mostra", all: "Tutti", fTodo: "Da fare", fDone: "Fatti", how: "Come si ottiene",
+      reveal: "Obiettivo segreto: mostra", showSecrets: n => `Mostra tutti i ${n} segreti`, hideSecrets: "Nascondi di nuovo i segreti",
+      warn: n => `Attenzione: vedrai nomi, descrizioni e guide di ${n} obiettivi segreti, compresi finali e boss nascosti.`, yes: "Mostrali", no: "Annulla", all: "Tutti", fTodo: "Da fare", fDone: "Fatti", how: "Come si ottiene",
       total: (d, n) => `${d} di ${n} fatti in questo salvataggio`, totalNoSave: n => `${n} obiettivi`,
       hint: w => `Lo stato viene dal salvataggio: dice cosa ha fatto questa partita, non cosa ha sbloccato Steam.${w ? ` Altri dettagli sulla <a href="${w}" target="_blank" rel="noopener">wiki</a>.` : ""}`,
     },
     en: {
       done: "Done in this save", todo: "Not yet in this save",
-      reveal: "Secret achievement: show", all: "All", fTodo: "To do", fDone: "Done", how: "How to get it",
+      reveal: "Secret achievement: show", showSecrets: n => `Show all ${n} secrets`, hideSecrets: "Hide secrets again",
+      warn: n => `Heads up: you'll see the names, descriptions and guides of ${n} secret achievements, endings and hidden bosses included.`, yes: "Show them", no: "Cancel", all: "All", fTodo: "To do", fDone: "Done", how: "How to get it",
       total: (d, n) => `${d} of ${n} done in this save`, totalNoSave: n => `${n} achievements`,
       hint: w => `Status comes from your save: it shows what this playthrough has done, not what Steam has unlocked.${w ? ` More details on the <a href="${w}" target="_blank" rel="noopener">wiki</a>.` : ""}`,
     },
@@ -20,7 +22,7 @@ const ACH_UI = (() => {
   const s = (k, ...a) => { const v = S[I18N.lang][k]; return typeof v === "function" ? v(...a) : v; };
   const esc = v => String(v).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
   const revealed = new Set(), opened = new Set();  // opened guides span the whole row so long steps stay readable
-  let root, opts, filter = "all";
+  let root, opts, filter = "all", confirming = false;
 
   const icon = i => `background-image:url(achievements.webp);background-size:${ACH.cols * 64}px auto;background-position:-${(i % ACH.cols) * 64}px -${Math.floor(i / ACH.cols) * 64}px`;
   function state(a) {
@@ -36,6 +38,10 @@ const ACH_UI = (() => {
     const loaded = rows.some(([, , st]) => st.cls), done = rows.filter(([, , st]) => st.cls === "done").length;
     root.querySelector(".ach-total").textContent = loaded ? s("total", done, rows.length) : s("totalNoSave", rows.length);
     root.querySelector(".ach-hint").innerHTML = s("hint", opts.wiki);
+    const secrets = rows.filter(([a]) => a.h).map(([, i]) => i), allShown = secrets.length && secrets.every(i => revealed.has(i));
+    root.querySelector(".ach-secrets").innerHTML = !secrets.length ? "" : confirming
+      ? `<p class="ach-warn" role="alert">${s("warn", secrets.length)} <button type="button" data-sec="yes">${s("yes")}</button> <button type="button" data-sec="no">${s("no")}</button></p>`
+      : `<button type="button" class="ach-reveal" data-sec="${allShown ? "hide" : "ask"}">${allShown ? s("hideSecrets") : s("showSecrets", secrets.length)}</button>`;
     root.querySelectorAll(".ach-filters button").forEach(b => { b.textContent = s(b.dataset.f === "all" ? "all" : b.dataset.f === "todo" ? "fTodo" : "fDone"); b.setAttribute("aria-pressed", b.dataset.f === filter); });
     root.querySelector(".achs").innerHTML = rows
       .filter(([, , st]) => filter === "all" || !loaded || (filter === "done") === (st.cls === "done"))
@@ -52,7 +58,7 @@ const ACH_UI = (() => {
 
   function init(el, o) {
     root = el; opts = o || {};
-    root.innerHTML = `<div class="ach-head"><div><h2 class="ach-total"></h2><p class="ach-hint"></p></div>
+    root.innerHTML = `<div class="ach-head"><div><h2 class="ach-total"></h2><p class="ach-hint"></p><div class="ach-secrets"></div></div>
       <div class="ach-filters" role="group"><button type="button" data-f="all"></button><button type="button" data-f="todo"></button><button type="button" data-f="done"></button></div></div>
       <ul class="achs"></ul>`;
     root.addEventListener("toggle", e => {
@@ -65,6 +71,14 @@ const ACH_UI = (() => {
       const b = e.target.closest("[data-a]"), f = e.target.closest("[data-f]");
       if (b) { revealed.add(+b.dataset.a); draw(); }
       if (f) { filter = f.dataset.f; draw(); }
+      const sec = e.target.closest("[data-sec]");
+      if (sec) {  // reveal every secret only after an explicit confirmation
+        const v = sec.dataset.sec;
+        if (v === "yes") ACH.list.forEach((a, i) => a.h && revealed.add(i));
+        if (v === "hide") ACH.list.forEach((a, i) => a.h && revealed.delete(i));
+        confirming = v === "ask";
+        draw();
+      }
     });
     draw();
   }

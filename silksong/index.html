@@ -68,6 +68,11 @@ aside{background:var(--deep);border-right:1px solid var(--line);display:flex;fle
 .row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .chip{font-size:13px;color:var(--bone);background:var(--ink);border:1px solid var(--line);border-radius:6px;padding:5px 10px;cursor:pointer}
 .chip:hover{border-color:var(--dim)}
+.spoiler-row{display:grid;gap:2px}
+.spoiler-row p{margin:0;font-size:12px;color:var(--dim)}
+.spoiler-row p[hidden]{display:none}
+.cat li.spo{cursor:pointer}
+.cat li.spo > *{filter:blur(5px);user-select:none}
 .toggle{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--dim);cursor:pointer}
 
 .cats{overflow:auto;flex:1;padding:6px 0 20px}
@@ -181,6 +186,10 @@ footer{font-size:12px;color:var(--dim);padding:6px 14px;border-top:1px solid var
         <button type="button" class="chip" id="hideAll" data-i18n="hideAll"></button>
         <label class="toggle"><input type="checkbox" id="showGot"> <span data-i18n="showGot"></span></label>
       </div>
+      <div class="spoiler-row">
+        <label class="toggle"><input type="checkbox" id="spoiler"> <span data-i18n="spoiler"></span></label>
+        <p id="spoHint" data-i18n="spoHint"></p>
+      </div>
     </div>
     <div class="cats" id="cats"></div>
   </aside>
@@ -213,6 +222,7 @@ footer{font-size:12px;color:var(--dim);padding:6px 14px;border-top:1px solid var
 <script>
 const STRINGS = {
   it: {
+    spoiler: "Nascondi spoiler", spoHint: "Segnalini e nomi restano nascosti finché non li trovi. Clicca un nome sfocato per vederlo.",
     tabAch: "Obiettivi",
     back: "Tutti i giochi", load: "Carica il salvataggio (user1.dat)",
     pathA: "Salvataggi in", copy: "copia", copied: "copiato", pathB: "(nella cartella con il tuo ID Steam).",
@@ -230,6 +240,7 @@ const STRINGS = {
     inRoom: n => n === 0 ? "Boss o arena: si combatte in questa stanza" : n > 1 ? `${n} in questa stanza` : "1 in questa stanza",
   },
   en: {
+    spoiler: "Hide spoilers", spoHint: "Pins and names stay hidden until you find them. Click a blurred name to see it.",
     tabAch: "Achievements",
     back: "All games", load: "Load your save (user1.dat)",
     pathA: "Saves are in", copy: "copy", copied: "copied", pathB: "(inside the folder named with your Steam ID).",
@@ -392,6 +403,12 @@ function enemyPopup(p) {
 }
 const itemMarkers = SS.items.map(it => it.p && L.marker([-it.p[1], it.p[0]]).bindPopup(() => itemPopup(it)));
 const enemyMarkers = SS.enemies.map(p => L.marker([-p[2], p[1]]).bindPopup(() => enemyPopup(p)));
+// Spoiler mode (on by default): pins and names stay hidden until you've found the thing or click its name.
+let spoiler = true;
+try { spoiler = localStorage.getItem("spoiler") !== "off"; } catch {}
+const revealedPins = new Set();
+const visible = (key, known) => !spoiler || !!known || revealedPins.has(key);
+const spo = (key, known) => visible(key, known) ? "" : ` spo" data-rv="${key}`;
 let highlight = null;
 
 function drawMap() {
@@ -402,6 +419,7 @@ function drawMap() {
     if (!itemMarkers[i] || !shown.has(g) || !matches(it.n + " " + it.d)) continue;
     const done = got && got[i];
     if (done && !showGot && highlight !== "i" + i) continue;
+    if (!visible("i" + i, done)) continue;
     const m = itemMarkers[i];
     m.setIcon(markerIcon(CAT[g]?.[3] || "#555", (done ? "got" : "") + (highlight === "i" + i ? " hit" : ""), `<img src="pins/${it.i}.png" alt="">`));
     m.setZIndexOffset(done ? -1000 : 0);
@@ -411,6 +429,7 @@ function drawMap() {
   if (shown.has("Journal")) SS.enemies.forEach((p, j) => {
     const e = SS.journal[p[0]], s = beastState(e);
     if ((s.cls === "done" && !showGot && highlight !== "e" + p[0]) || !matches(beastName(e) + " " + e.n)) return;
+    if (!visible("e" + p[0], chk && s.cls !== "unseen")) return;
     const m = enemyMarkers[j];
     m.setIcon(markerIcon(CAT.Journal[3], (s.cls === "done" ? "got" : "") + (highlight === "e" + p[0] ? " hit" : ""), `<span class="face" style="${faceStyle(e, 24)}"></span>`));
     m.unbindTooltip().bindTooltip(beastName(e), { direction: "top", offset: [13, -30] });
@@ -432,7 +451,7 @@ function drawList() {
         const ents = SS.journal.map((e, i) => [e, i, beastState(e)]);
         total = ents.length; n = chk ? ents.filter(([, , s]) => s.cls === "done").length : 0;
         body = ents.filter(([e, , s]) => (showGot || s.cls !== "done") && matches(beastName(e) + " " + e.n))
-          .map(([e, i, s]) => `<li class="${s.cls === "done" ? "got" : ""}"><button type="button" data-e="${i}">${esc(beastName(e))}</button> <small>${esc(s.text)}</small></li>`).join("");
+          .map(([e, i, s]) => `<li class="${s.cls === "done" ? "got" : ""}${spo("e" + i, chk && s.cls !== "unseen")}"><button type="button" data-e="${i}">${esc(beastName(e))}</button> <small>${esc(s.text)}</small></li>`).join("");
       } else {
         const rows = all.filter(([it]) => catOf(it) === g);
         if (!rows.length) continue;
@@ -441,7 +460,7 @@ function drawList() {
         const areas = {};
         for (const [it, i] of list) (areas[it.r ? zone(it.r) : ""] ??= []).push([it, i]);
         body = Object.entries(areas).map(([a, rs]) => `${a ? `<div class="area">${esc(a)}</div>` : ""}${rs.map(([it, i]) =>
-          `<li class="${got && got[i] ? "got" : ""}">${it.p ? `<button type="button" data-i="${i}">${esc(it.n)}</button>` : esc(it.n)}${!it.p && it.d ? `<span class="det">${esc(it.d)}</span>` : ""}</li>`).join("")}`).join("");
+          `<li class="${got && got[i] ? "got" : ""}${spo("i" + i, got && got[i])}">${it.p ? `<button type="button" data-i="${i}">${esc(it.n)}</button>` : esc(it.n)}${!it.p && it.d ? `<span class="det">${esc(it.d)}</span>` : ""}</li>`).join("")}`).join("");
       }
       const c = cats[g];
       const ico = c[2] ? `<img src="pins/${c[2]}.png" alt="">` : g === "Journal" ? `<span style="width:20px;height:20px;border-radius:50%;${faceStyle(SS.journal[0], 20)}"></span>` : "";
@@ -526,12 +545,17 @@ function focusEnemy(ei) {
   const j = SS.enemies.findIndex(p => p[0] === ei);
   showTab("map");
   if (j < 0) return;
-  shown.add("Journal"); highlight = "e" + ei; render();
+  shown.add("Journal"); highlight = "e" + ei; revealedPins.add("e" + ei); render();
   map.flyTo([-SS.enemies[j][2], SS.enemies[j][1]], 0, { duration: .6 });
   setTimeout(() => enemyMarkers[j].openPopup(), 650);
 }
 
 document.getElementById("cats").addEventListener("click", e => {
+  const sp = e.target.closest("li.spo");
+  if (sp) {  // spoiler mode: the first click reveals the name (and its pin, through the button handler below)
+    revealedPins.add(sp.dataset.rv);
+    if (!e.target.closest("button")) { drawMap(); drawList(); return; }
+  }
   const gp = e.target.closest("[data-grp]");
   if (gp) {  // group checkbox: all on unless they already all are
     e.preventDefault();
@@ -566,6 +590,15 @@ document.getElementById("cats").addEventListener("toggle", e => {
   if (g && !query) e.target.open ? open.add(g) : open.delete(g);
 }, true);
 document.getElementById("showGot").onchange = render;
+document.getElementById("spoiler").checked = spoiler;
+document.getElementById("spoHint").hidden = !spoiler;
+document.getElementById("spoiler").onchange = e => {
+  spoiler = e.target.checked;
+  try { localStorage.setItem("spoiler", spoiler ? "on" : "off"); } catch {}
+  document.getElementById("spoHint").hidden = !spoiler;
+  drawMap(); drawList();
+};
+
 document.getElementById("showAll").onclick = () => { Object.keys(CAT).filter(g => !OFF.has(g)).forEach(g => shown.add(g)); drawMap(); drawList(); };
 document.getElementById("hideAll").onclick = () => { shown.clear(); drawMap(); drawList(); };
 document.getElementById("q").addEventListener("input", e => { query = e.target.value.trim().toLowerCase(); drawMap(); drawList(); });

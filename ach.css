@@ -26,3 +26,7 @@
 .ach.secret .ach-ico{filter:blur(4px)}
 .ach.secret .ach-how{display:none}
 .ach-reveal{margin-top:6px;font:inherit;font-size:13px;color:var(--ach-ink);background:none;border:1px solid var(--ach-line);border-radius:999px;padding:3px 10px;cursor:pointer}
+.ach-secrets{margin-top:8px}
+.ach-warn{margin:0;font-size:14px;color:var(--ach-ink);background:var(--ach-card);border:1px solid var(--ach-accent);border-radius:8px;padding:8px 10px;max-width:60em}
+.ach-warn button{font:inherit;font-size:13px;margin-left:6px;padding:3px 10px;border-radius:999px;cursor:pointer;border:1px solid var(--ach-line);background:none;color:var(--ach-ink)}
+.ach-warn button[data-sec=yes]{background:var(--ach-accent);border-color:var(--ach-accent);color:var(--ach-card)}
