@@ -106,6 +106,41 @@ for scene, info in enemies.items():
         if pin:
             epins.append([jidx[jid], pin[0][0], pin[0][1], pin[1], len(pts)])
 
+ZONE_OF_SCENE = [("organ_", "ORGAN"), ("room_crowcourt", "CRAW_LAKE"), ("peak_", "PEAK"), ("coral_29", "VOLTNEST"),
+                 ("clover_", "CLOVER"), ("memory_coral_tower", "RED_CORAL_TOWER"), ("memory_ant_queen", "HUNTERS_NEST"),
+                 ("abyss_", "ABYSS"), ("dust_maze", "DUSTPENS"), ("cradle_", "CRADLE"), ("slab_", "THE_SLAB"),
+                 ("ant_", "HUNTERS_NEST"), ("abandoned_town", "BONETOWN"), ("bellway_centipede", "CITADEL_STATION")]
+# Bosses / scripted enemies: scenes whose components reference the journal record (ss_scan_boss_scenes.py).
+# One pin per entry, count 0 = "fought here"; object position when usable, else the room centre.
+pinned = {p[0] for p in epins}
+for jid, refs in (json.load(open("ss_boss_scenes.json")) if os.path.exists("ss_boss_scenes.json") else {}).items():
+    if jid not in jidx or jidx[jid] in pinned:
+        continue
+    pin = None
+    for scene, wx, wy in refs:
+        size = size_ci.get(scene.lower())
+        pin = to_map(scene, (wx, wy) if wx or wy else None, size)
+        if not pin:  # arena / memory variants share the base room ("bone_05_boss" -> "bone_05")
+            base = re.sub(r"(_boss.*|_memory)$", "", scene.lower())
+            pin = to_map(base, (wx, wy) if wx or wy else None, size_ci.get(base))
+        if pin:
+            break
+    if not pin:  # fights in scenes with no room of their own: pin the zone title they belong to
+        key = next((k for pre, k in ZONE_OF_SCENE if refs[0][0].lower().startswith(pre)), None)
+        lab = next((l for l in labels["labels"] if l["key"] == key), None)
+        if lab:
+            pin = ([round(lab["x"]), round(lab["y"])], key)
+    if pin:
+        epins.append([jidx[jid], pin[0][0], pin[0][1], pin[1], 0])
+
+# A few bosses no scene search finds: pin their zone title by hand.
+MANUAL_ZONE = {"Last Judge": "JUDGE_STEPS", "Tormented Trobbio": "CITADEL_STAGE", "Flower Queen": "SHELLWOOD_THICKET"}
+pinned = {p[0] for p in epins}
+for jid, key in MANUAL_ZONE.items():
+    lab = next((l for l in labels["labels"] if l["key"] == key), None)
+    if jid in jidx and jidx[jid] not in pinned and lab:
+        epins.append([jidx[jid], round(lab["x"]), round(lab["y"]), key, 0])
+
 meta = {"size": rooms["size"], "cell": best["cell"], "cols": best["cols"], "zones": labels["zones"], "labels": labels["labels"]}
 with open(os.path.join(OUT, "data.js"), "w", encoding="utf8") as f:
     f.write("// Item list and save rules from Br3zzly/silksong-completionist (MIT); map, positions, enemies and names from the game files.\n")

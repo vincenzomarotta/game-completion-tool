@@ -16,6 +16,8 @@ enemies = json.load(open("hk_enemies.json"))
 
 out, skipped = {}, 0
 for scene, hits in enemies.items():
+    # boss fights live in additive "<room>_boss" scenes that share the base room's coordinates
+    scene = re.sub(r"_boss$", "", scene) if re.sub(r"_boss$", "", scene) in RM else scene
     target = mapped.get(scene, {}).get("MappedScene", scene)
     if target not in RM:
         skipped += len(hits); continue
@@ -32,6 +34,22 @@ for scene, hits in enemies.items():
         else:      # scene drawn as part of another room: put it at that room's centre
             px, py = x, y
         out.setdefault(jid, []).append([round(px), round(py), area, len(pts)])
+
+# Bosses and arena enemies (recorded by FSMs): one pin at the centre of the room where the fight happens, count 0.
+COLOSSEUM = ["ColRoller", "ColMosquito", "ColShield", "ColFlyingSentry", "ColWorm", "ColHopper", "Blobble"]
+boss_scenes = json.load(open("hk_boss_scenes.json"))
+boss_scenes.update({"NightmareGrimm": ["Grimm_Main_Tent"], "MegaJellyfish": ["Fungus3_archive_02"], **{j: ["Room_Colosseum_01"] for j in COLOSSEUM}})
+for jid, scs in boss_scenes.items():
+    if jid in out:
+        continue
+    for sc in scs:
+        sc = re.sub(r"_boss$", "", sc)
+        target = mapped.get(sc, {}).get("MappedScene", sc)
+        if sc.startswith(("GG_Nail", "GG_Radiance", "GG_Watcher", "GG_Mantis", "GG_Land")) or target not in RM:
+            continue
+        x, y, area = RM[target][:3]
+        out[jid] = [[round(x), round(y), area, 0]]
+        break
 
 with open(sys.argv[1], "w", encoding="utf8") as f:
     f.write("// Enemy placements read from the game scenes (EnemyDeathEffects), one pin per enemy type per room.\n")

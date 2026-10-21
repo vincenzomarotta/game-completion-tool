@@ -204,7 +204,7 @@ const STRINGS = {
     jTotal: (seen, done, n) => `${seen} di ${n} incontrati, ${done} completati`, jTotalNoSave: n => `${n} voci`,
     unseen: "Mai incontrato", left: n => `${n === 1 ? "Manca 1 uccisione" : `Mancano ${n} uccisioni`}`, complete: "Completo",
     needs: n => n > 1 ? `${n} uccisioni` : "1 uccisione", wiki: "wiki", onMap: "Mostra sulla mappa",
-    inRoom: n => n > 1 ? `${n} in questa stanza` : "1 in questa stanza", noPins: "Non è un nemico fisso: compare durante un combattimento.",
+    inRoom: n => n === 0 ? "Boss o arena: si combatte in questa stanza" : n > 1 ? `${n} in questa stanza` : "1 in questa stanza", noPins: "Non è un nemico fisso: compare durante un combattimento.",
   },
   en: {
     back: "All games", load: "Load your save (user1.dat)",
@@ -220,7 +220,7 @@ const STRINGS = {
     jTotal: (seen, done, n) => `${seen} of ${n} encountered, ${done} completed`, jTotalNoSave: n => `${n} entries`,
     unseen: "Never encountered", left: n => `${n} kill${n === 1 ? "" : "s"} left`, complete: "Complete",
     needs: n => `${n} kill${n === 1 ? "" : "s"}`, wiki: "wiki", onMap: "Show on map",
-    inRoom: n => `${n} in this room`, noPins: "Not a fixed enemy: it only appears during a fight.",
+    inRoom: n => n === 0 ? "Boss or arena: fought in this room" : `${n} in this room`, noPins: "Not a fixed enemy: it only appears during a fight.",
   },
 };
 // Sidebar groups -> categories: [it, en, pin art, marker colour]

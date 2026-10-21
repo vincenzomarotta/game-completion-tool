@@ -200,7 +200,7 @@ const STRINGS = {
     jTotal: (seen, done, n) => `${seen} di ${n} incontrati, ${done} completati`, jTotalNoSave: n => `${n} voci`,
     unseen: "Mai incontrato", left: n => `${n === 1 ? "Manca 1 uccisione" : `Mancano ${n} uccisioni`}`, complete: "Completo",
     needs: n => n > 1 ? `${n} uccisioni` : "1 uccisione", onMap: "Mostra sulla mappa",
-    inRoom: n => n > 1 ? `${n} in questa stanza` : "1 in questa stanza", engNames: "Nomi di oggetti e descrizioni in inglese.",
+    inRoom: n => n === 0 ? "Boss o arena: si combatte in questa stanza" : n > 1 ? `${n} in questa stanza` : "1 in questa stanza", engNames: "Nomi di oggetti e descrizioni in inglese.",
   },
   en: {
     back: "All games", load: "Load your save (user1.dat)",
@@ -216,7 +216,7 @@ const STRINGS = {
     jTotal: (seen, done, n) => `${seen} of ${n} encountered, ${done} completed`, jTotalNoSave: n => `${n} entries`,
     unseen: "Never encountered", left: n => `${n} kill${n === 1 ? "" : "s"} left`, complete: "Complete",
     needs: n => `${n} kill${n === 1 ? "" : "s"}`, onMap: "Show on map",
-    inRoom: n => `${n} in this room`, engNames: "",
+    inRoom: n => n === 0 ? "Boss or arena: fought in this room" : `${n} in this room`, engNames: "",
   },
 };
 // Sidebar groups -> categories: [it, en, pin art, marker colour]. Cache sections are their own categories.
