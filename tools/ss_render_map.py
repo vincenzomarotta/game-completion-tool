@@ -8,6 +8,7 @@ from PIL import Image
 from Crypto.Cipher import AES
 
 SCALE = 100
+REFERENCE_SAVE = "ss/save.json"  # decrypted JSON of a 100% save (its scenesMapped decides which room variants to draw)
 files = [AA + r"\maps_assets_all.bundle"] + glob.glob(AA + r"\atlases_assets_assets\sprites\_atlases\hornet_map*.bundle")
 env = UnityPy.load(*files)
 res = UnityPy.load(DATA + r"\resources.assets")
@@ -63,7 +64,7 @@ for at in [c.read() for c in tr(gm).m_Children]:
         if rgo.m_Name.startswith("Area Name"):          # the area's own title, placed by the game
             k = label_key(rgo)
             if k:
-                labels_raw.append(("area", k, x, y)); area_key.setdefault(ago.m_Name, []).append((k, x, y))
+                labels_raw.append(("area", k, x, y, rt.m_LocalPosition.x == 0 and rt.m_LocalPosition.y == 0)); area_key.setdefault(ago.m_Name, []).append((k, x, y))
             continue
         for ch in [c.read() for c in rt.m_Children]:    # sub-area titles sit under rooms
             cgo = ch.m_GameObject.read()
@@ -71,7 +72,7 @@ for at in [c.read() for c in tr(gm).m_Children]:
                 k = label_key(cgo)
                 if k:
                     lx, ly = x + ch.m_LocalPosition.x * s.x, y + ch.m_LocalPosition.y * s.y
-                    labels_raw.append(("sub", k, lx, ly)); sub_key.setdefault(ago.m_Name, []).append((k, lx, ly))
+                    labels_raw.append(("sub", k, lx, ly, False)); sub_key.setdefault(ago.m_Name, []).append((k, lx, ly))
         srs = comps(rgo).get("SpriteRenderer")
         if not srs or re.search(r"destroyed|broken|shade_fader", rgo.m_Name, re.I):
             continue
@@ -93,7 +94,38 @@ for scene, x, y, sp, area, sx, sy, col in placed:
     w, h = sp.m_Rect.width / sp.m_PixelsToUnits * abs(sx), sp.m_Rect.height / sp.m_PixelsToUnits * abs(sy)
     px, py = sp.m_Pivot.x, sp.m_Pivot.y
     boxes.append((x - px * w, y - py * h, x + (1 - px) * w, y + (1 - py) * h, w, h))
-minx = min(b[0] for b in boxes) - 1; maxx = max(b[2] for b in boxes) + 1
+
+# The prefab holds alternative states of some rooms (e.g. Abyss layers, bell variants) stacked on top of each other.
+# A 100% save's scenesMapped lists the pieces the game actually draws: keep those, plus unmapped pieces that don't
+# overlap them (real rooms the reference save simply never visited).
+mapped = set(json.load(open(REFERENCE_SAVE))["playerData"]["scenesMapped"])
+M = 20  # coarse pixels per map unit for the overlap test, on the rooms' drawn pixels rather than their boxes
+mx0, my1 = min(b[0] for b in boxes), max(b[3] for b in boxes)
+def room_mask(p, b):
+    img = full_image(p[3])
+    if p[5] < 0: img = img.transpose(Image.FLIP_LEFT_RIGHT)
+    if p[6] < 0: img = img.transpose(Image.FLIP_TOP_BOTTOM)
+    a = img.getchannel("A").resize((max(1, round(b[4] * M)), max(1, round(b[5] * M))))
+    return a.point(lambda v: 255 if v > 40 else 0), (round((b[0] - mx0) * M), round((my1 - b[3]) * M))
+mask = Image.new("L", (round((max(b[2] for b in boxes) - mx0) * M) + 1, round((my1 - min(b[1] for b in boxes)) * M) + 1))
+for p, b in zip(placed, boxes):
+    if p[0] in mapped:
+        a, pos = room_mask(p, b)
+        mask.paste(255, pos, a)
+def covered(p, b):
+    a, (ox, oy) = room_mask(p, b)
+    under = mask.crop((ox, oy, ox + a.width, oy + a.height))
+    own = sum(1 for v in a.getdata() if v)
+    both = sum(1 for v, u in zip(a.getdata(), under.getdata()) if v and u)
+    return own and both / own
+cov = {p[0]: covered(p, b) for p, b in zip(placed, boxes) if p[0] not in mapped}
+print("unmapped coverage:", sorted((round(v, 2), k) for k, v in cov.items()))
+keep = [p[0] in mapped or cov[p[0]] < 0.3 for p, b in zip(placed, boxes)]
+print("dropped overlapping variants:", [p[0] for p, k in zip(placed, keep) if not k])
+placed = [p for p, k in zip(placed, keep) if k]
+boxes = [b for b, k in zip(boxes, keep) if k]
+
+minx =min(b[0] for b in boxes) - 1; maxx = max(b[2] for b in boxes) + 1
 miny = min(b[1] for b in boxes) - 1; maxy = max(b[3] for b in boxes) + 1
 W, H = int((maxx - minx) * SCALE), int((maxy - miny) * SCALE)
 X = lambda v: round((v - minx) * SCALE, 1)
@@ -114,11 +146,23 @@ for (scene, x, y, sp, area, sx, sy, col), (x0, y0, x1, y1, w, h) in zip(placed, 
     zone = min(cands, key=lambda c: (c[1] - x) ** 2 + (c[2] - y) ** 2)[0]
     rooms[scene] = [X(x), Y(y), zone, round(w, 3), round(h, 3), round(sp.m_Pivot.x, 3), round(sp.m_Pivot.y, 3)]
 
+zone_boxes = {}
+for (scene, *_), b in zip(placed, boxes):
+    zone_boxes.setdefault(rooms[scene][2], []).append(b)
+
 labels, seen = [], set()
-for kind, k, x, y in labels_raw:
+for kind, k, x, y, at_origin in labels_raw:
     if k not in ZONES["en"] or (kind, k) in seen or ZONES["en"][k] in seen:
         continue
     seen.update([(kind, k), ZONES["en"][k]])
+    zb = zone_boxes.get(k)
+    if kind == "area" and zb:
+        # some titles are anchored far from their rooms (e.g. The Abyss): move those to the zone's centre
+        near = any(b[0] - 2 <= x <= b[2] + 2 and b[1] - 2 <= y <= b[3] + 2 for b in zb)
+        if not near or at_origin:  # titles left at the area origin were never placed by hand
+            # median of room centres: a few far-off connector rooms (e.g. the Abyss ascent) can't drag it away
+            xs, ys = sorted((b[0] + b[2]) / 2 for b in zb), sorted((b[1] + b[3]) / 2 for b in zb)
+            x, y = xs[len(xs) // 2], ys[len(ys) // 2]
     labels.append({"k": kind, "x": X(x), "y": Y(y), "key": k, "en": ZONES["en"][k], "it": ZONES["it"].get(k, ZONES["en"][k])})
 
 canvas.save("ss_map.webp", quality=90, method=6)
