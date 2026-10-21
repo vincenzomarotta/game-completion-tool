@@ -42,7 +42,7 @@ sprites = {}
 for o in env.objects:
     if o.type.name == "Sprite":
         try:
-            sprites.setdefault(o.peek_name(), o)
+            sprites.setdefault(o.peek_name(), []).append(o)
         except Exception:
             pass
 
@@ -93,7 +93,11 @@ for at in [c.read() for c in tr(gm).m_Children]:
         if not sr.m_Sprite.path_id:
             continue
         name = sr.m_Sprite.read().m_Name
-        sp = (sprites.get(re.sub(r"_Cornifer$", "", name)) or sprites.get(name)).read()
+        # the full art is the sprite named like the rough "_Cornifer" one; some names exist twice (e.g. Fungus3_47),
+        # so take the one whose size is closest to the rough sprite the room was laid out with
+        rough = sr.m_Sprite.read()
+        cands = [c.read() for c in sprites.get(re.sub(r"_Cornifer$", "", name), []) or sprites.get(rgo.m_Name, [])] or [rough]
+        sp = min(cands, key=lambda c: abs(c.m_Rect.width - rough.m_Rect.width) + abs(c.m_Rect.height - rough.m_Rect.height))
         c = sr.m_Color
         placed.append((rgo.m_Name, rx, ry, sp, ago.m_Name, (c.r, c.g, c.b)))
 

@@ -4,6 +4,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Tunic Completionist</title>
+<meta name="description" content="Load your Tunic save and see which chests, manual pages, fairies and secrets are still missing, with mini maps.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Game Completion Tool">
+<meta property="og:title" content="Tunic Completionist">
+<meta property="og:description" content="Load your Tunic save and see which chests, manual pages, fairies and secrets are still missing, with mini maps.">
+<meta property="og:url" content="https://vincenzomarotta.github.io/game-completion-tool/tunic/">
+<meta property="og:image" content="https://vincenzomarotta.github.io/game-completion-tool/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Alegreya+Sans:wght@400;500;700&display=swap" rel="stylesheet">
@@ -19,7 +31,9 @@ main{max-width:1120px;margin:0 auto;padding:20px 16px 72px}
 :focus-visible{outline:2px solid var(--fox);outline-offset:2px}
 a{color:inherit}
 .top{display:flex;justify-content:space-between;align-items:center}
-.back{color:var(--ink-soft);font-size:15px;text-underline-offset:3px}
+.back{display:inline-flex;align-items:center;gap:6px;color:var(--ink);font-size:15px;font-weight:500;text-decoration:none;border:1px solid var(--rule);border-radius:999px;padding:5px 14px 5px 11px;background:var(--leaf)}
+.back::before{content:"‹";font-size:20px;line-height:.8}
+.back:hover{border-color:var(--fox)}
 .lang{display:flex;gap:2px}
 .lang button{font:500 14px var(--body);color:var(--ink-soft);background:none;border:0;padding:4px 8px;cursor:pointer;border-radius:4px}
 .lang button[aria-pressed=true]{color:var(--paper);background:var(--ink)}
@@ -87,7 +101,7 @@ footer{margin-top:56px;font-size:14px;color:var(--ink-soft);border-top:1px solid
 <body>
 <main>
   <div class="top">
-    <a class="back" href="../" data-i18n="back">Tutti i giochi</a>
+    <a class="back" href="../" data-i18n="back">All games</a>
     <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="it">IT</button><button type="button" data-lang="en">EN</button></div>
   </div>
 

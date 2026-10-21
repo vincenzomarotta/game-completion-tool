@@ -4,6 +4,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Death's Door Completionist</title>
+<meta name="description" content="Load your Death's Door save and see which shiny things, seeds, shrines and tablets are still missing, and where.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Game Completion Tool">
+<meta property="og:title" content="Death's Door Completionist">
+<meta property="og:description" content="Load your Death's Door save and see which shiny things, seeds, shrines and tablets are still missing, and where.">
+<meta property="og:url" content="https://vincenzomarotta.github.io/game-completion-tool/deaths-door/">
+<meta property="og:image" content="https://vincenzomarotta.github.io/game-completion-tool/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Alegreya+Sans:wght@400;500;700&display=swap" rel="stylesheet">
@@ -67,8 +79,9 @@ h1{font:400 clamp(40px,6vw,64px)/1.02 var(--display);margin:0 0 16px;letter-spac
 .note{font-size:15px;color:var(--ash);margin:6px 0 0}
 details{margin-top:10px;font-size:15px}
 summary{cursor:pointer;color:var(--ash)}
-.back{display:inline-block;margin:-24px 0 24px;color:var(--ash);font-size:15px;text-underline-offset:3px}
-.back:hover{color:var(--bone)}
+.back{display:inline-flex;align-items:center;gap:6px;margin:-24px 0 24px;color:var(--bone);font-size:15px;font-weight:500;text-decoration:none;border:1px solid var(--stone);border-radius:999px;padding:5px 14px 5px 11px;background:rgba(0,0,0,.2)}
+.back::before{content:"‹";font-size:20px;line-height:.8}
+.back:hover{border-color:var(--soul)}
 .lang{position:absolute;top:16px;right:16px;display:flex;gap:2px}
 .lang button{font:500 14px var(--body);color:var(--ash);background:none;border:0;padding:4px 8px;cursor:pointer;border-radius:4px}
 .lang button[aria-pressed=true]{color:var(--bone);background:rgba(255,255,255,.08)}
@@ -87,7 +100,7 @@ footer a{color:var(--ash)}
 <body>
 <main>
 <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="it">IT</button><button type="button" data-lang="en">EN</button></div>
-<a class="back" href="../" data-i18n="back">Tutti i giochi</a>
+<a class="back" href="../" data-i18n="back">All games</a>
 <section class="hero">
   <label class="door" id="door">
     <input type="file" accept=".sav,.bak" data-i18n-aria="upload">

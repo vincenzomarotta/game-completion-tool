@@ -9,8 +9,8 @@ Site: https://vincenzomarotta.github.io/game-completion-tool/
 | Game | Folder | Save file | What it shows |
 |---|---|---|---|
 | Death's Door | `deaths-door/` | `Save_slotN.sav` in `%USERPROFILE%\AppData\LocalLow\Acid Nerve\DeathsDoor\SAVEDATA` | Shiny things, seeds, pots, shrines, soul orbs, tablets, by category or area |
-| Hollow Knight | `hollow-knight/` | `userN.dat` in `%USERPROFILE%\AppData\LocalLow\Team Cherry\Hollow Knight` | Interactive map in the game's colours with area names, item and enemy pins, Hunter's Journal |
-| Hollow Knight: Silksong | `silksong/` | `userN.dat` in `%USERPROFILE%\AppData\LocalLow\Team Cherry\Hollow Knight Silksong\<id>` | Interactive map in the game's colours with area names, item and enemy pins, Hunter's Journal |
+| Hollow Knight | `hollow-knight/` | `userN.dat` in `%USERPROFILE%\AppData\LocalLow\Team Cherry\Hollow Knight` | Interactive map in the game's colours with area names, item and enemy pins, Hunter's Journal, achievement guide |
+| Hollow Knight: Silksong | `silksong/` | `userN.dat` in `%USERPROFILE%\AppData\LocalLow\Team Cherry\Hollow Knight Silksong\<id>` | Interactive map in the game's colours with area names, item and enemy pins, Hunter's Journal, achievement guide |
 | TUNIC | `tunic/` | the newest `.tunic` file in `%USERPROFILE%\AppData\LocalLow\Andrew Shouldice\Secret Legend\SAVES` | Chests, pages, fairies, secrets by region, with top-down mini maps |
 
 ## Data sources
@@ -24,8 +24,9 @@ Site: https://vincenzomarotta.github.io/game-completion-tool/
 
 The scripts in `tools/` rebuild the generated files. They read the game install, so you need the games installed, plus Python with `UnityPy`, `TypeTreeGeneratorAPI`, `pycryptodome`, `dnfile` and `Pillow`. Run them from a folder that holds clones of the source repositories listed above.
 
-- Hollow Knight: `hk_render_map.py` (map, colours and area labels), `hk_build_data.py hollow-knight/data.js` (locations), `hk_kill_counts.py hk_kills.json` then `hk_build_bestiary.py hollow-knight` (journal), `hk_scan_enemies.py` and `hk_scan_boss_scenes.py`, then `hk_build_enemies.py hollow-knight/enemies.js` (enemy and boss pins).
-- Silksong: export the silksong-completionist dictionary to `ss/dict.json`, then `ss_render_map.py` (map, colours and area labels), `ss_scan_scenes.py` (object positions), `ss_scan_enemies.py` (enemy positions), `ss_scan_boss_scenes.py silksong/data.js` (boss scenes), `ss_build_assets.py silksong` (pins and journal portraits), `ss_build_data.py silksong` (items and journal).
+- Hollow Knight: `hk_render_map.py` (map, colours and area labels), `hk_build_data.py hollow-knight/data.js` (locations), `hk_kill_counts.py hk_kills.json` then `hk_build_bestiary.py hollow-knight` (journal), `hk_scan_enemies.py` and `hk_scan_boss_scenes.py`, then `hk_build_enemies.py hollow-knight/enemies.js` (enemy and boss pins), `hk_build_achievements.py hollow-knight` (achievements).
+- Silksong: export the silksong-completionist dictionary to `ss/dict.json`, then `ss_render_map.py` (map, colours and area labels), `ss_scan_scenes.py` (object positions), `ss_scan_enemies.py` (enemy positions), `ss_scan_boss_scenes.py silksong/data.js` (boss scenes), `ss_build_assets.py silksong` (pins and journal portraits), `ss_build_data.py silksong` (items and journal), `ss_build_achievements.py silksong` (achievements).
+- Link preview image and icon: `make_og.py .`.
 - TUNIC: `tunic_build_data.py tunic/data.js [save.tunic]` (prints counts when given a save).
 
 ## Adding a game

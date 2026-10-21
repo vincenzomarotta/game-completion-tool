@@ -4,6 +4,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Silksong Completionist</title>
+<meta name="description" content="Load your Hollow Knight: Silksong save: interactive map of what's left for 100%, Hunter's Journal and achievement guide.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Game Completion Tool">
+<meta property="og:title" content="Silksong Completionist">
+<meta property="og:description" content="Load your Hollow Knight: Silksong save: interactive map of what's left for 100%, Hunter's Journal and achievement guide.">
+<meta property="og:url" content="https://vincenzomarotta.github.io/game-completion-tool/silksong/">
+<meta property="og:image" content="https://vincenzomarotta.github.io/game-completion-tool/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Alegreya+Sans:wght@400;500;700&display=swap" rel="stylesheet">
@@ -24,10 +36,13 @@ button{font-family:inherit}
 .bar{display:flex;align-items:center;gap:16px;padding:8px 14px;border-bottom:1px solid var(--line);background:var(--deep);flex-wrap:wrap}
 .bar h1{font:400 22px/1 var(--display);letter-spacing:.08em;margin:0;white-space:nowrap}
 .bar h1 span{color:var(--red)}
-.bar .back{color:var(--dim);font-size:14px;text-underline-offset:3px}
-.tabs{display:flex;gap:2px;margin-left:8px}
-.tabs button{font-size:15px;color:var(--dim);background:none;border:0;border-bottom:2px solid transparent;padding:6px 12px;cursor:pointer}
-.tabs button[aria-selected=true]{color:var(--bone);border-bottom-color:var(--red)}
+.bar .back{display:inline-flex;align-items:center;gap:6px;color:var(--bone);font-size:14px;font-weight:500;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:5px 13px 5px 10px;background:var(--ink)}
+.bar .back::before{content:"\2039";font-size:19px;line-height:.8}
+.bar .back:hover{border-color:var(--red)}
+.tabs{display:flex;gap:3px;margin-left:8px;background:var(--abyss);border:1px solid var(--line);border-radius:10px;padding:3px}
+.tabs button{font-size:15px;font-weight:500;color:var(--dim);background:none;border:0;border-radius:7px;padding:7px 14px;cursor:pointer}
+.tabs button:hover{color:var(--bone)}
+.tabs button[aria-selected=true]{color:var(--bone);background:var(--red)}
 .bar .sp{flex:1}
 .lang{display:flex;gap:2px}
 .lang button{font-size:13px;color:var(--dim);background:none;border:0;padding:4px 8px;cursor:pointer;border-radius:4px}
@@ -124,6 +139,16 @@ aside{background:var(--deep);border-right:1px solid var(--line);display:flex;fle
 .beast a,.beast button.onmap{color:var(--dim);font-size:13px;background:none;border:0;padding:0;cursor:pointer;text-decoration:underline}
 .beast .kbar{height:2px;background:var(--line);margin-top:6px}
 .beast .kbar i{display:block;height:100%;background:var(--red)}
+/* achievements */
+.achs{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+.ach{align-items:start}
+.ach p.d{color:var(--bone)}
+.ach .tip{font-style:italic}
+.ach.unknown .st{color:var(--dim)}
+.ach.secret h3,.ach.secret p.d,.ach.secret .tip{filter:blur(6px);user-select:none}
+.ach.secret .face{filter:blur(4px)}
+.ach .reveal{margin-top:6px;font-size:13px;color:var(--bone);background:none;border:1px solid var(--line);border-radius:999px;padding:3px 10px;cursor:pointer}
+.jhead a{color:inherit}
 footer{font-size:12px;color:var(--dim);padding:6px 14px;border-top:1px solid var(--line);background:var(--deep)}
 
 @media (max-width:820px){
@@ -142,6 +167,7 @@ footer{font-size:12px;color:var(--dim);padding:6px 14px;border-top:1px solid var
   <nav class="tabs" role="tablist">
     <button type="button" role="tab" data-tab="map" aria-selected="true" data-i18n="tabMap"></button>
     <button type="button" role="tab" data-tab="journal" aria-selected="false" data-i18n="tabJournal"></button>
+    <button type="button" role="tab" data-tab="ach" aria-selected="false" data-i18n="tabAch"></button>
   </nav>
   <span class="sp"></span>
   <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="it">IT</button><button type="button" data-lang="en">EN</button></div>
@@ -178,15 +204,31 @@ footer{font-size:12px;color:var(--dim);padding:6px 14px;border-top:1px solid var
   <ul class="beasts" id="beasts"></ul>
 </section>
 
+<section class="journal" id="tab-ach" hidden>
+  <div class="jhead">
+    <div><h2 id="atotal"></h2><p data-i18n="aHint"></p></div>
+    <div class="filters" id="afilters" role="group">
+      <button type="button" data-f="all" aria-pressed="true" data-i18n="fAll"></button>
+      <button type="button" data-f="todo" aria-pressed="false" data-i18n="fTodo"></button>
+      <button type="button" data-f="done" aria-pressed="false" data-i18n="fDone"></button>
+    </div>
+  </div>
+  <ul class="beasts achs" id="achs"></ul>
+</section>
+
 <footer data-i18n="footer"></footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/aes-js/3.1.2/index.min.js"></script>
 <script src="../i18n.js"></script>
 <script src="data.js"></script>
+<script src="achievements.js"></script>
 <script>
 const STRINGS = {
   it: {
+    tabAch: "Obiettivi", aDone: "Fatto in questo salvataggio", aTodo: "Non ancora in questo salvataggio", aUnknown: "Non si vede dal salvataggio",
+    aReveal: "Obiettivo segreto: mostra", aTotal: (d, n) => `${d} di ${n} fatti in questo salvataggio`, aTotalNoSave: n => `${n} obiettivi`,
+    aHint: 'Lo stato viene dal salvataggio: dice cosa ha fatto questa partita, non cosa ha sbloccato Steam. Guida completa sulla <a href="https://hollowknight.wiki/w/Achievements_(Silksong)" target="_blank" rel="noopener">wiki</a>.',
     back: "Tutti i giochi", load: "Carica il salvataggio (user1.dat)",
     pathA: "Salvataggi in", copy: "copia", copied: "copiato", pathB: "(nella cartella con il tuo ID Steam).",
     search: "Cerca", showAll: "Mostra tutto", hideAll: "Nascondi tutto", showGot: "Anche già presi",
@@ -203,6 +245,9 @@ const STRINGS = {
     inRoom: n => n === 0 ? "Boss o arena: si combatte in questa stanza" : n > 1 ? `${n} in questa stanza` : "1 in questa stanza", engNames: "Nomi di oggetti e descrizioni in inglese.",
   },
   en: {
+    tabAch: "Achievements", aDone: "Done in this save", aTodo: "Not yet in this save", aUnknown: "Can't tell from the save",
+    aReveal: "Secret achievement: show", aTotal: (d, n) => `${d} of ${n} done in this save`, aTotalNoSave: n => `${n} achievements`,
+    aHint: 'Status comes from your save: it shows what this playthrough has done, not what Steam has unlocked. Full guide on the <a href="https://hollowknight.wiki/w/Achievements_(Silksong)" target="_blank" rel="noopener">wiki</a>.',
     back: "All games", load: "Load your save (user1.dat)",
     pathA: "Saves are in", copy: "copy", copied: "copied", pathB: "(inside the folder named with your Steam ID).",
     search: "Search", showAll: "Show all", hideAll: "Hide all", showGot: "Include collected",
@@ -304,7 +349,7 @@ function checker(save) {
   };
   const kills = jid => journal.get(jid)?.Record.Kills;
   const steelSoul = pd.permadeathMode !== 0;
-  return { has, kills, inMode: it => !((it.ss && !steelSoul) || (it.cl && steelSoul)) };
+  return { has, kills, pd, inMode: it => !((it.ss && !steelSoul) || (it.cl && steelSoul)) };
 }
 
 let chk = null, got = null, filter = "all", query = "";
@@ -436,12 +481,89 @@ function drawJournal() {
         ${s.pct !== undefined ? `<div class="kbar"><i style="width:${s.pct}%"></i></div>` : ""}</div></li>`).join("");
 }
 
-function render() { drawMap(); drawList(); drawJournal(); }
+const SAVE_PD = () => chk && chk.pd;
+// Achievement checks on playerData: a field name, a function, or null when the save doesn't record it
+const SS_CRESTS = ["Reaper", "Wanderer", "Warrior", "Witch", "Toolmaster", "Spell"];
+const sect = (pred, k) => {  // all (or at least k) of the tracked items matching pred are collected
+  const r = SS.items.map((it, i) => [it, i]).filter(([it]) => pred(it) && chk.inMode(it)), n = r.filter(([, i]) => got[i]).length;
+  return k ? n >= k : n === r.length;
+};
+const inSec = name => it => it.s === name || it.c === name;
+const quest = id => () => chk.has({ type: "quest", internalId: id });
+const ended = p => p.CompletedEndings > 0;
+const ACH_CHECK = {
+  FIRST_TOOL: () => sect(inSec("Tools"), 1), ALL_TOOLS: () => sect(inSec("Tools")),
+  FIRST_SILK_SKILL: () => sect(inSec("Silk Skills"), 1), ALL_SILK_SKILLS: () => sect(inSec("Silk Skills")),
+  FIRST_CREST: () => SS_CRESTS.some(c => chk.has({ type: "crest", internalId: c })), ALL_CRESTS: () => SS_CRESTS.every(c => chk.has({ type: "crest", internalId: c })),
+  FIRST_MASK: () => sect(inSec("Mask Shards"), 4), ALL_MASKS: () => sect(inSec("Mask Shards")),
+  FIRST_SILK_SPOOL: () => sect(inSec("Spool Fragments"), 2), ALL_SILK_SPOOLS: () => sect(inSec("Spool Fragments")),
+  ALL_SILK_HEARTS: () => sect(inSec("Silk Hearts")), ALL_MAPS: () => sect(inSec("Maps")),
+  BELLWAYS_FULL: () => sect(inSec("Bellways")), BELLWAY_MELODY: "UnlockedFastTravelTeleport", TUBES_FULL: () => sect(inSec("Ventrica Stations")),
+  JOURNAL_HALF: quest("Journal"), JOURNAL_FULL: "nuuMementoAwarded", FLEAS_HALF: () => sect(inSec("Lost Fleas"), 15), FLEAS_ALL: () => sect(inSec("Lost Fleas")),
+  DEFEATED_BELLBEAST: "defeatedBellBeast", DEFEATED_LACE_1: "defeatedLace1", DEFEATED_SONG_GOLEM: "defeatedSongGolem", DEFEATED_WIDOW: "spinnerDefeated",
+  DEFEATED_LAST_JUDGE_1: "defeatedLastJudge", DEFEATED_COGWORK_DANCERS: "defeatedCogworkDancers", DEFEATED_TROBBIO: "defeatedTrobbio",
+  DEFEATED_LACE_2: "defeatedLaceTower", DEFEATED_PHANTOM_1: "defeatedPhantom", DEFEATED_FIRST_SINNER: "defeatedFirstWeaver",
+  DEFEATED_CORAL_KING: "defeatedCoralKing", DEFEATED_FLOWER_QUEEN: "defeatedFlowerQueen", DEFEATED_HUNTER_QUEEN: "defeatedAntQueen",
+  DEFEATED_GREEN_PRINCE: "defeatedCloverDancers",
+  FIRST_WISH: () => sect(it => it.c === "Tasks" && it.s.startsWith("Wishes"), 1), GOURMAND_WISH: quest("Great Gourmand"),
+  SHAKRA_FINAL_QUEST: quest("Shakra Final Quest"), GARMOND_FINAL_QUEST: "garmondBlackThreadDefeated", PINSTRESS_WISH: quest("Pinstress Battle"),
+  EVA_FINAL_QUEST: "HasBoundCrestUpgrader", BELLHOME: "BelltownHouseUnlocked", CITADEL_SONG: "UnlockedMelodyLift",
+  WHITE_FLOWER_GAINED: () => chk.has({ type: "collectable", internalId: "White Flower" }),
+  // CompletedEndings is a bit set: 1 Act 2 ending, 2 cursed, 4 Soul Snare, 8 Act 3 ending
+  ENDING_A: p => p.CompletedEndings & 1, ENDING_D: p => p.CompletedEndings & 2, ENDING_C: p => p.CompletedEndings & 4, ENDING_E: p => p.CompletedEndings & 8,
+  HERALD_WISH: null, COMPLETION: p => ended(p) && p.completionPercentage >= 100, SPEEDRUN_1: p => ended(p) && p.playTime < 18000,
+  SPEED_COMPLETION: p => ended(p) && p.completionPercentage >= 100 && p.playTime < 108000,
+  STEEL_SOUL: p => ended(p) && p.permadeathMode > 0, STEEL_SOUL_FULL: p => ended(p) && p.permadeathMode > 0 && p.completionPercentage >= 100,
+};
+// how-to notes for achievements whose in-game text doesn't say where or how
+const TIPS = {
+  JOURNAL_HALF: ["Fill half of the Hunter's Journal and complete Nuu's wish “Bugs of Pharloom”.", "Completa metà del Diario del Cacciatore e il desiderio di Nuu “Bugs of Pharloom”."],
+  JOURNAL_FULL: ["Complete every Journal entry, then talk to Nuu again.", "Completa tutte le voci del Diario, poi parla di nuovo con Nuu."],
+  FLEAS_ALL: ["Rescue all 30 lost fleas, then visit Fleatopia.", "Salva tutte le 30 pulci perdute, poi visita Fleatopia."],
+  EVA_FINAL_QUEST: ["Keep unlocking crest slots with Eva until she gives you Sylphsong.", "Continua a sbloccare gli slot delle creste con Eva finché non ti dà Sylphsong."],
+  CITADEL_SONG: ["Collect the melodies of the Architect, the Librarian and the Conductor.", "Raccogli le melodie dell'Architetto, della Bibliotecaria e del Direttore."],
+  ENDING_A: ["End Act 2 against Grand Mother Silk without the curse or the Soul Snare.", "Chiudi l'Atto 2 contro Grand Mother Silk senza la maledizione e senza la Soul Snare."],
+  ENDING_C: ["Complete the wish “Silk and Soul” to get the Soul Snare before the fight.", "Completa il desiderio “Silk and Soul” per avere la Soul Snare prima dello scontro."],
+  ENDING_D: ["Fight Grand Mother Silk while you carry the Witch's curse.", "Affronta Grand Mother Silk mentre porti la maledizione della Strega."],
+  ENDING_E: ["Act 3 ending: defeat Lost Lace in the Abyss.", "Finale dell'Atto 3: sconfiggi Lost Lace nell'Abisso."],
+};
+
+// ---- achievements: the save tells what this playthrough has done; Steam keeps the real unlocks
+let afilter = "all";
+const revealed = new Set();
+const achIcon = i => `background-image:url(achievements.webp);background-size:${ACH.cols * 64}px auto;background-position:-${(i % ACH.cols) * 64}px -${Math.floor(i / ACH.cols) * 64}px`;
+function achState(a) {
+  const p = SAVE_PD();
+  if (!p) return { cls: "", text: "" };
+  const f = ACH_CHECK[a.k];
+  if (f == null) return { cls: "unknown", text: t("aUnknown") };
+  return (typeof f === "string" ? p[f] : f(p)) ? { cls: "done", text: t("aDone") } : { cls: "", text: t("aTodo") };
+}
+function drawAch() {
+  const L = en() ? 0 : 1, rows = ACH.list.map((a, i) => [a, i, achState(a)]);
+  const done = rows.filter(([, , s]) => s.cls === "done").length;
+  document.getElementById("atotal").textContent = SAVE_PD() ? t("aTotal", done, rows.length) : t("aTotalNoSave", rows.length);
+  document.getElementById("achs").innerHTML = rows
+    .filter(([, , s]) => afilter === "all" || !SAVE_PD() || (afilter === "done") === (s.cls === "done"))
+    .map(([a, i, s]) => {
+      const secret = a.h && s.cls !== "done" && !revealed.has(i), tip = TIPS[a.k];
+      return `<li class="beast ach ${s.cls}${secret ? " secret" : ""}"><div class="face" style="${achIcon(i)}"></div>
+        <div><h3>${esc(a.n[L])}</h3><p class="d">${esc(a.d[L])}</p>${tip ? `<p class="tip">${esc(tip[L])}</p>` : ""}
+        ${s.text ? `<p class="st">${esc(s.text)}</p>` : ""}${secret ? `<button type="button" class="reveal" data-a="${i}">${t("aReveal")}</button>` : ""}</div></li>`;
+    }).join("");
+}
+document.getElementById("achs").addEventListener("click", e => {
+  const b = e.target.closest("[data-a]");
+  if (b) { revealed.add(+b.dataset.a); drawAch(); }
+});
+
+function render() { drawMap(); drawList(); drawJournal(); drawAch(); }
 
 function showTab(name) {
   document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-selected", x.dataset.tab === name));
   document.getElementById("tab-map").hidden = name !== "map";
   document.getElementById("tab-journal").hidden = name !== "journal";
+  document.getElementById("tab-ach").hidden = name !== "ach";
   if (name === "map") map.invalidateSize();
 }
 function focusEnemy(ei) {
@@ -483,13 +605,12 @@ document.getElementById("showAll").onclick = () => { Object.keys(CAT).filter(g =
 document.getElementById("hideAll").onclick = () => { shown.clear(); drawMap(); drawList(); };
 document.getElementById("q").addEventListener("input", e => { query = e.target.value.trim().toLowerCase(); drawMap(); drawList(); });
 document.querySelector(".tabs").addEventListener("click", e => { const b = e.target.closest("[data-tab]"); if (b) showTab(b.dataset.tab); });
-document.querySelector(".filters").addEventListener("click", e => {
+document.querySelectorAll(".filters").forEach(g => g.addEventListener("click", e => {
   const b = e.target.closest("[data-f]");
   if (!b) return;
-  filter = b.dataset.f;
-  document.querySelectorAll(".filters button").forEach(x => x.setAttribute("aria-pressed", x === b));
-  drawJournal();
-});
+  g.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  if (g.id === "afilters") { afilter = b.dataset.f; drawAch(); } else { filter = b.dataset.f; drawJournal(); }
+}));
 
 async function load(file) {
   const err = document.getElementById("err");
