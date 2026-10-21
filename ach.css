@@ -1,0 +1,25 @@
+/* Shared achievements list (ach.js). Pages set --ach-card, --ach-line, --ach-ink, --ach-dim, --ach-accent, --ach-done. */
+.ach-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:14px}
+.ach-head h2{font-size:19px;font-weight:500;margin:0}
+.ach-hint{margin:4px 0 0;color:var(--ach-dim);font-size:14px;max-width:60em}
+.ach-hint a{color:inherit}
+.ach-filters{display:flex;gap:4px}
+.ach-filters button{font:inherit;font-size:14px;color:var(--ach-dim);background:var(--ach-card);border:1px solid var(--ach-line);border-radius:999px;padding:5px 12px;cursor:pointer}
+.ach-filters button[aria-pressed=true]{color:var(--ach-card);background:var(--ach-ink);border-color:var(--ach-ink)}
+.achs{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+.ach{background:var(--ach-card);border:1px solid var(--ach-line);border-radius:8px;padding:10px;display:grid;grid-template-columns:64px 1fr;gap:12px;align-items:start;color:var(--ach-ink)}
+.ach.done{border-color:var(--ach-done)}
+.ach-ico{width:64px;height:64px;border-radius:6px;background-repeat:no-repeat}
+.ach h3{font-size:15px;font-weight:600;line-height:1.25;margin:0}
+.ach p{margin:3px 0 0;font-size:14px}
+.ach-d{color:var(--ach-ink)}
+.ach-how{margin-top:4px;font-size:14px}
+.ach-how summary{cursor:pointer;color:var(--ach-accent);font-size:13px;width:max-content}
+.ach-how p{color:var(--ach-ink);opacity:.85;line-height:1.45}
+.ach-st{font-size:13px!important;color:var(--ach-accent)}
+.ach.done .ach-st{color:var(--ach-done)}
+.ach.unknown .ach-st{color:var(--ach-dim)}
+.ach.secret h3,.ach.secret .ach-d{filter:blur(6px);user-select:none}
+.ach.secret .ach-ico{filter:blur(4px)}
+.ach.secret .ach-how{display:none}
+.ach-reveal{margin-top:6px;font:inherit;font-size:13px;color:var(--ach-ink);background:none;border:1px solid var(--ach-line);border-radius:999px;padding:3px 10px;cursor:pointer}

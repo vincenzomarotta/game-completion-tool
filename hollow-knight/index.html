@@ -20,6 +20,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Alegreya+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="../ach.css">
 <style>
 :root{
   --abyss:#07090d; --deep:#0f141d; --ink:#171e2a; --line:#262f40;
@@ -72,8 +73,10 @@ aside{background:var(--deep);border-right:1px solid var(--line);display:flex;fle
 .toggle{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--dim);cursor:pointer}
 
 .cats{overflow:auto;flex:1;padding:6px 0 20px}
-.grp{font:400 13px var(--display);letter-spacing:.12em;color:var(--dim);padding:12px 14px 4px}
-.cat summary{list-style:none;display:grid;grid-template-columns:28px 1fr auto;gap:8px;align-items:center;padding:5px 14px;cursor:pointer}
+.grp{display:flex;align-items:center;gap:8px;font:400 13px var(--display);letter-spacing:.12em;color:var(--dim);padding:12px 14px 4px;cursor:pointer}
+.grp input,.vis input{width:16px;height:16px;margin:0;accent-color:var(--amber);cursor:pointer}
+.vis{display:flex;align-items:center;gap:8px;cursor:pointer}
+.cat summary{list-style:none;display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;padding:5px 14px;cursor:pointer}
 .cat summary::-webkit-details-marker{display:none}
 .cat summary:hover{background:rgba(255,255,255,.03)}
 .cat .ico{width:26px;height:26px;border-radius:50%;background:var(--c);display:grid;place-items:center;border:0;padding:0;cursor:pointer}
@@ -141,16 +144,8 @@ aside{background:var(--deep);border-right:1px solid var(--line);display:flex;fle
 .beast a,.beast button.onmap{color:var(--dim);font-size:13px;background:none;border:0;padding:0;cursor:pointer;text-decoration:underline}
 .beast .kbar{height:2px;background:var(--line);margin-top:6px}
 .beast .kbar i{display:block;height:100%;background:var(--amber)}
-/* achievements */
-.achs{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
-.ach{align-items:start}
-.ach p.d{color:var(--bone)}
-.ach .tip{font-style:italic}
-.ach.unknown .st{color:var(--dim)}
-.ach.secret h3,.ach.secret p.d,.ach.secret .tip{filter:blur(6px);user-select:none}
-.ach.secret .face{filter:blur(4px)}
-.ach .reveal{margin-top:6px;font-size:13px;color:var(--bone);background:none;border:1px solid var(--line);border-radius:999px;padding:3px 10px;cursor:pointer}
-.jhead a{color:inherit}
+.achwrap{flex:1;overflow:auto;padding:16px;--ach-card:var(--deep);--ach-line:var(--line);--ach-ink:var(--bone);--ach-dim:var(--dim);--ach-accent:var(--amber);--ach-done:var(--soul)}
+.achwrap[hidden]{display:none}
 footer{font-size:12px;color:var(--dim);padding:6px 14px;border-top:1px solid var(--line);background:var(--deep)}
 
 @media (max-width:820px){
@@ -206,17 +201,7 @@ footer{font-size:12px;color:var(--dim);padding:6px 14px;border-top:1px solid var
   <ul class="beasts" id="beasts"></ul>
 </section>
 
-<section class="journal" id="tab-ach" hidden>
-  <div class="jhead">
-    <div><h2 id="atotal"></h2><p data-i18n="aHint"></p></div>
-    <div class="filters" id="afilters" role="group">
-      <button type="button" data-f="all" aria-pressed="true" data-i18n="fAll"></button>
-      <button type="button" data-f="todo" aria-pressed="false" data-i18n="fTodo"></button>
-      <button type="button" data-f="done" aria-pressed="false" data-i18n="fDone"></button>
-    </div>
-  </div>
-  <ul class="beasts achs" id="achs"></ul>
-</section>
+<section class="achwrap" id="tab-ach" hidden></section>
 
 <footer data-i18n="footer"></footer>
 
@@ -225,14 +210,14 @@ footer{font-size:12px;color:var(--dim);padding:6px 14px;border-top:1px solid var
 <script src="../i18n.js"></script>
 <script src="data.js"></script>
 <script src="achievements.js"></script>
+<script src="guide.js"></script>
+<script src="../ach.js"></script>
 <script src="bestiary.js"></script>
 <script src="enemies.js"></script>
 <script>
 const STRINGS = {
   it: {
-    tabAch: "Obiettivi", aDone: "Fatto in questo salvataggio", aTodo: "Non ancora in questo salvataggio", aUnknown: "Non si vede dal salvataggio",
-    aReveal: "Obiettivo segreto: mostra", aTotal: (d, n) => `${d} di ${n} fatti in questo salvataggio`, aTotalNoSave: n => `${n} obiettivi`,
-    aHint: 'Lo stato viene dal salvataggio: dice cosa ha fatto questa partita, non cosa ha sbloccato Steam. Guida completa sulla <a href="https://hollowknight.wiki/w/Achievements" target="_blank" rel="noopener">wiki</a>.',
+    tabAch: "Obiettivi",
     back: "Tutti i giochi", load: "Carica il salvataggio (user1.dat)",
     pathA: "Salvataggi in", copy: "copia", copied: "copiato",
     search: "Cerca", showAll: "Mostra tutto", hideAll: "Nascondi tutto", showGot: "Anche già presi",
@@ -249,9 +234,7 @@ const STRINGS = {
     inRoom: n => n === 0 ? "Boss o arena: si combatte in questa stanza" : n > 1 ? `${n} in questa stanza` : "1 in questa stanza", noPins: "Non è un nemico fisso: compare durante un combattimento.",
   },
   en: {
-    tabAch: "Achievements", aDone: "Done in this save", aTodo: "Not yet in this save", aUnknown: "Can't tell from the save",
-    aReveal: "Secret achievement: show", aTotal: (d, n) => `${d} of ${n} done in this save`, aTotalNoSave: n => `${n} achievements`,
-    aHint: 'Status comes from your save: it shows what this playthrough has done, not what Steam has unlocked. Full guide on the <a href="https://hollowknight.wiki/w/Achievements" target="_blank" rel="noopener">wiki</a>.',
+    tabAch: "Achievements",
     back: "All games", load: "Load your save (user1.dat)",
     pathA: "Saves are in", copy: "copy", copied: "copied",
     search: "Search", showAll: "Show all", hideAll: "Hide all", showGot: "Include collected",
@@ -343,6 +326,7 @@ const ENEMY_PINS = B.entries.flatMap((e, ei) => (HK_ENEMIES[e.id] || []).map(([x
 let got = null, pd = null, filter = "all", query = "";
 const shown = new Set(Object.keys(CAT).filter(g => !HIDDEN_BY_DEFAULT.has(g)));
 const open = new Set();
+const TOGGLABLE = g => true;
 
 function beastState(e) {
   if (!pd) return { cls: "", text: t("needs", Math.max(e.k, 1)) };
@@ -436,8 +420,9 @@ function drawMap() {
 function drawList() {
   const showGot = document.getElementById("showGot").checked;
   let html = "";
-  for (const [gkey, cats] of GROUPS) {
-    html += `<div class="grp">${t(gkey)}</div>`;
+  GROUPS.forEach(([gkey, cats], gi) => {
+    const gs = Object.keys(cats).filter(TOGGLABLE), on = gs.filter(g => shown.has(g)).length;
+    html += gs.length ? `<label class="grp" data-grp="${gi}"><input type="checkbox"${on === gs.length ? " checked" : ""} data-mixed="${+(on > 0 && on < gs.length)}"> ${t(gkey)}</label>` : `<div class="grp">${t(gkey)}</div>`;
     for (const g of Object.keys(cats)) {
       let rows, n, total, body;
       if (g === "Journal") {
@@ -456,11 +441,12 @@ function drawList() {
       }
       const ico = cats[g][2] ? `<img src="pins/${cats[g][2]}.png" alt="">` : `<span style="width:20px;height:20px;border-radius:50%;${faceStyle(0, 20)}"></span>`;
       html += `<details class="cat${shown.has(g) ? "" : " off"}${got && n === total ? " done" : ""}" data-g="${g}"${open.has(g) || query ? " open" : ""}>
-        <summary><button type="button" class="ico" data-toggle="${g}" style="--c:${cats[g][3]}" aria-pressed="${shown.has(g)}" aria-label="${esc(gname(g))}">${ico}</button>
+        <summary><label class="vis" data-toggle="${g}"><input type="checkbox"${shown.has(g) ? " checked" : ""} aria-label="${esc(gname(g))}"><span class="ico" style="--c:${cats[g][3]}">${ico}</span></label>
         <span class="nm">${esc(gname(g))}</span><span class="n">${got ? `${n}/` : ""}${total}</span></summary><ul>${body}</ul></details>`;
     }
-  }
+  });
   document.getElementById("cats").innerHTML = html;
+  document.querySelectorAll("#cats [data-mixed='1']").forEach(x => x.indeterminate = true);
   const n = got ? got.size : 0;
   document.getElementById("total").textContent = got ? t("found", n, ROWS.length) : t("total", ROWS.length);
   document.getElementById("pfill").style.width = got ? `${100 * n / ROWS.length}%` : "0";
@@ -508,73 +494,15 @@ const ACH_CHECK = {
   PANTHEON3: p => p.bossDoorStateTier3?.completed, PANTHEON4: p => p.bossDoorStateTier4?.completed, ENDINGD: p => p.bossDoorStateTier5?.completed,
   COMPLETIONGG: p => pct(p, 112),
 };
-// how-to notes for achievements whose in-game text doesn't say where or how
-const TIPS = {
-  BLESSED: ["Own every charm, then buy Salubra's Blessing from Salubra in Forgotten Crossroads.", "Ottieni tutti gli amuleti, poi compra la Benedizione di Salubra da Salubra nei Sentieri Dimenticati."],
-  DREAM_FK: ["Hit the defeated False Knight's body with the Dream Nail.", "Colpisci il corpo del Falso Cavaliere sconfitto con il Chiodo dei Sogni."],
-  DREAM_SOUL_MASTER_DEFEAT: ["Hit the defeated Soul Master's body with the Dream Nail.", "Colpisci il corpo del Maestro delle Anime sconfitto con il Chiodo dei Sogni."],
-  DREAM_BROKEN_VESSEL: ["Hit the defeated Broken Vessel's body in Ancient Basin with the Dream Nail.", "Colpisci il corpo del Vaso Rotto sconfitto nell'Antico Bacino con il Chiodo dei Sogni."],
-  HORNET_2: ["Hornet waits in Kingdom's Edge, near the Cast-Off Shell.", "Hornet aspetta nelle Frontiere del Reame, vicino al guscio abbandonato."],
-  COLLECTOR: ["In the Tower of Love in City of Tears, opened with the Love Key.", "Nella Torre dell'Amore nella Città delle Lacrime, che si apre con la Chiave dell'Amore."],
-  ZOTE: ["Save Zote in Greenpath and in Deepnest, then beat him in the Trial of the Warrior.", "Salva Zote a Verdevia e a Nidoscuro, poi battilo nella Prova del Guerriero."],
-  NEGLECT: ["Get the Mantis Claw without saving Zote from the Vengefly King in Greenpath.", "Ottieni l'Artiglio di Mantide senza salvare Zote dal Re Vendimosca a Verdevia."],
-  ASCENSION: ["Collect 2400 Essence, then talk to the Seer in Resting Grounds.", "Raccogli 2400 Essenza, poi parla con la Veggente nelle Terre del Riposo."],
-  NAILSMITH_KILL: ["After the Pure Nail, agree to strike the Nailsmith down.", "Dopo il Chiodo Puro, accetta di colpire il Fabbro di Chiodi."],
-  NAILSMITH_SPARE: ["After the Pure Nail, refuse the Nailsmith's request, then visit Sheo's hut in Greenpath.", "Dopo il Chiodo Puro, rifiuta la richiesta del Fabbro di Chiodi, poi visita la capanna di Sheo a Verdevia."],
-  QUIRREL_EPILOGUE: ["After the Teacher's Archives, find Quirrel by Blue Lake and sit next to him.", "Dopo l'Archivio della Maestra, trova Quirrel sulla riva del Lago Blu e siediti accanto a lui."],
-  MOURNER: ["Carry the Grey Mourner's Delicate Flower to the grave in Queen's Gardens without taking damage.", "Porta il Fiore Delicato della Dolente Grigia alla tomba nei Giardini della Regina senza subire danni."],
-  STAG_STATION_ALL: ["Open every Stag Station, then ride to the Stag Nest.", "Apri tutte le stazioni dei cervi, poi viaggia fino al Nido dei Cervi."],
-  TEACHER: ["Monomon sleeps in the Teacher's Archives in Fog Canyon: use the Dream Nail on her.", "Monomon dorme nell'Archivio della Maestra nel Canyon Nebbioso: usa il Chiodo dei Sogni su di lei."],
-  WATCHER: ["Lurien sleeps at the top of the Watcher's Spire in City of Tears: use the Dream Nail on him.", "Lurien dorme in cima alla Guglia dell'Osservatore nella Città delle Lacrime: usa il Chiodo dei Sogni su di lui."],
-  BEAST: ["Herrah sleeps in the Beast's Den in Deepnest: use the Dream Nail on her.", "Herrah dorme nella Tana della Bestia a Nidoscuro: usa il Chiodo dei Sogni su di lei."],
-  MAP: ["Buy every area map from Cornifer, or later from Iselda in Dirtmouth.", "Compra le mappe di tutte le zone da Cornifer, o più tardi da Iselda a Pulveria."],
-  ENDING_A: ["Fight the Hollow Knight without the Void Heart.", "Affronta il Cavaliere Vacuo senza il Cuore del Vuoto."],
-  ENDING_B: ["Fight the Hollow Knight with the Void Heart equipped.", "Affronta il Cavaliere Vacuo con il Cuore del Vuoto equipaggiato."],
-  ENDING_C: ["With the Void Heart, use the Dream Nail on the Hollow Knight when Hornet pins it down.", "Con il Cuore del Vuoto, usa il Chiodo dei Sogni sul Cavaliere Vacuo quando Hornet lo blocca."],
-  VOID: ["Join both halves of the Kingsoul, then visit the Birthplace in the Abyss.", "Unisci le due metà dell'Animadoro, poi visita il Luogo natale nell'Abisso."],
-  HUNTER_2: ["Finish every Hunter's note, then talk to the Hunter in Greenpath.", "Completa tutte le note del Cacciatore, poi parla con il Cacciatore a Verdevia."],
-  WHITE_DEFENDER: ["After the three Dreamers, use the Dream Nail on the sleeping Dung Defender in Royal Waterways.", "Dopo i tre Sognatori, usa il Chiodo dei Sogni sul Difensore dello Sterco addormentato nelle Idrovie Reali."],
-  GREY_PRINCE: ["Save Zote twice and rescue Bretta, then use the Dream Nail on the bed in Bretta's house in Dirtmouth.", "Salva Zote due volte e Bretta, poi usa il Chiodo dei Sogni sul letto nella casa di Bretta a Pulveria."],
-  GRIMM: ["Light the Nightmare Lantern in Howling Cliffs, collect the Grimmkin flames and fight Grimm in his tent.", "Accendi la Lanterna dell'Incubo nei Dirupi Urlanti, raccogli le fiamme dei Grimmkin e affronta Grimm nella sua tenda."],
-  NIGHTMARE_GRIMM: ["Feed Grimmchild all the flames, then use the Dream Nail on the heart in the tent.", "Dai tutte le fiamme a Grimmchild, poi usa il Chiodo dei Sogni sul cuore nella tenda."],
-  BANISHMENT: ["Instead of the Ritual, ask Brumm in Deepnest to banish the Troupe.", "Invece del Rituale, chiedi a Brumm a Nidoscuro di cacciare la Compagnia."],
-  PANTHEON1: ["Get the Godtuner from the Godseeker in the Junk Pit (Royal Waterways), then enter Godhome.", "Ottieni il Diapason divino dalla Cercatrice di dei nella Discarica (Idrovie Reali), poi entra nella Casa degli Dei."],
-  PANTHEON2: ["Get the Godtuner from the Godseeker in the Junk Pit (Royal Waterways), then enter Godhome.", "Ottieni il Diapason divino dalla Cercatrice di dei nella Discarica (Idrovie Reali), poi entra nella Casa degli Dei."],
-  PANTHEON3: ["Get the Godtuner from the Godseeker in the Junk Pit (Royal Waterways), then enter Godhome.", "Ottieni il Diapason divino dalla Cercatrice di dei nella Discarica (Idrovie Reali), poi entra nella Casa degli Dei."],
-  PANTHEON4: ["Get the Godtuner from the Godseeker in the Junk Pit (Royal Waterways), then enter Godhome.", "Ottieni il Diapason divino dalla Cercatrice di dei nella Discarica (Idrovie Reali), poi entra nella Casa degli Dei."],
-  ENDINGD: ["The Pantheon of Hallownest opens once the first four are complete.", "Il Pantheon di Hallownest si apre dopo aver completato i primi quattro."],
+
+
+const achCheck = k => {
+  const p = SAVE_PD(), f = ACH_CHECK[k];
+  if (!p) return undefined;
+  return f == null ? null : !!(typeof f === "string" ? p[f] : f(p));
 };
-
-// ---- achievements: the save tells what this playthrough has done; Steam keeps the real unlocks
-let afilter = "all";
-const revealed = new Set();
-const achIcon = i => `background-image:url(achievements.webp);background-size:${ACH.cols * 64}px auto;background-position:-${(i % ACH.cols) * 64}px -${Math.floor(i / ACH.cols) * 64}px`;
-function achState(a) {
-  const p = SAVE_PD();
-  if (!p) return { cls: "", text: "" };
-  const f = ACH_CHECK[a.k];
-  if (f == null) return { cls: "unknown", text: t("aUnknown") };
-  return (typeof f === "string" ? p[f] : f(p)) ? { cls: "done", text: t("aDone") } : { cls: "", text: t("aTodo") };
-}
-function drawAch() {
-  const L = en() ? 0 : 1, rows = ACH.list.map((a, i) => [a, i, achState(a)]);
-  const done = rows.filter(([, , s]) => s.cls === "done").length;
-  document.getElementById("atotal").textContent = SAVE_PD() ? t("aTotal", done, rows.length) : t("aTotalNoSave", rows.length);
-  document.getElementById("achs").innerHTML = rows
-    .filter(([, , s]) => afilter === "all" || !SAVE_PD() || (afilter === "done") === (s.cls === "done"))
-    .map(([a, i, s]) => {
-      const secret = a.h && s.cls !== "done" && !revealed.has(i), tip = TIPS[a.k];
-      return `<li class="beast ach ${s.cls}${secret ? " secret" : ""}"><div class="face" style="${achIcon(i)}"></div>
-        <div><h3>${esc(a.n[L])}</h3><p class="d">${esc(a.d[L])}</p>${tip ? `<p class="tip">${esc(tip[L])}</p>` : ""}
-        ${s.text ? `<p class="st">${esc(s.text)}</p>` : ""}${secret ? `<button type="button" class="reveal" data-a="${i}">${t("aReveal")}</button>` : ""}</div></li>`;
-    }).join("");
-}
-document.getElementById("achs").addEventListener("click", e => {
-  const b = e.target.closest("[data-a]");
-  if (b) { revealed.add(+b.dataset.a); drawAch(); }
-});
-
-function render() { drawMap(); drawList(); drawJournal(); drawAch(); }
+ACH_UI.init(document.getElementById("tab-ach"), { wiki: "https://hollowknight.wiki/w/Achievements", check: achCheck });
+function render() { drawMap(); drawList(); drawJournal(); ACH_UI.draw(); }
 
 function showTab(name) {
   document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-selected", x.dataset.tab === name));
@@ -594,6 +522,15 @@ function focusEnemy(ei) {
 }
 
 document.getElementById("cats").addEventListener("click", e => {
+  const gp = e.target.closest("[data-grp]");
+  if (gp) {  // group checkbox: all on unless they already all are
+    e.preventDefault();
+    const gs = Object.keys(GROUPS[+gp.dataset.grp][1]).filter(TOGGLABLE);
+    const all = gs.every(g => shown.has(g));
+    gs.forEach(g => all ? shown.delete(g) : shown.add(g));
+    drawMap(); drawList();
+    return;
+  }
   const tog = e.target.closest("[data-toggle]");
   if (tog) {
     e.preventDefault();
@@ -626,12 +563,13 @@ document.getElementById("showAll").onclick = () => { Object.keys(CAT).forEach(g 
 document.getElementById("hideAll").onclick = () => { shown.clear(); drawMap(); drawList(); };
 document.getElementById("q").addEventListener("input", e => { query = e.target.value.trim().toLowerCase(); drawMap(); drawList(); });
 document.querySelector(".tabs").addEventListener("click", e => { const b = e.target.closest("[data-tab]"); if (b) showTab(b.dataset.tab); });
-document.querySelectorAll(".filters").forEach(g => g.addEventListener("click", e => {
+document.querySelector(".filters").addEventListener("click", e => {
   const b = e.target.closest("[data-f]");
   if (!b) return;
-  g.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b));
-  if (g.id === "afilters") { afilter = b.dataset.f; drawAch(); } else { filter = b.dataset.f; drawJournal(); }
-}));
+  filter = b.dataset.f;
+  document.querySelectorAll(".filters button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  drawJournal();
+});
 
 async function load(file) {
   const err = document.getElementById("err");

@@ -20,6 +20,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Alegreya+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="../ach.css">
 <style>
 :root{
   --abyss:#0c0708; --deep:#170e10; --ink:#22151a; --line:#3a252b;
@@ -70,8 +71,10 @@ aside{background:var(--deep);border-right:1px solid var(--line);display:flex;fle
 .toggle{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--dim);cursor:pointer}
 
 .cats{overflow:auto;flex:1;padding:6px 0 20px}
-.grp{font:400 13px var(--display);letter-spacing:.12em;color:var(--dim);padding:12px 14px 4px}
-.cat summary{list-style:none;display:grid;grid-template-columns:28px 1fr auto;gap:8px;align-items:center;padding:5px 14px;cursor:pointer}
+.grp{display:flex;align-items:center;gap:8px;font:400 13px var(--display);letter-spacing:.12em;color:var(--dim);padding:12px 14px 4px;cursor:pointer}
+.grp input,.vis input{width:16px;height:16px;margin:0;accent-color:var(--red);cursor:pointer}
+.vis{display:flex;align-items:center;gap:8px;cursor:pointer}
+.cat summary{list-style:none;display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;padding:5px 14px;cursor:pointer}
 .cat summary::-webkit-details-marker{display:none}
 .cat summary:hover{background:rgba(255,255,255,.03)}
 .cat .ico{width:26px;height:26px;border-radius:50%;background:var(--c);display:grid;place-items:center;border:0;padding:0;cursor:pointer}
@@ -139,16 +142,8 @@ aside{background:var(--deep);border-right:1px solid var(--line);display:flex;fle
 .beast a,.beast button.onmap{color:var(--dim);font-size:13px;background:none;border:0;padding:0;cursor:pointer;text-decoration:underline}
 .beast .kbar{height:2px;background:var(--line);margin-top:6px}
 .beast .kbar i{display:block;height:100%;background:var(--red)}
-/* achievements */
-.achs{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
-.ach{align-items:start}
-.ach p.d{color:var(--bone)}
-.ach .tip{font-style:italic}
-.ach.unknown .st{color:var(--dim)}
-.ach.secret h3,.ach.secret p.d,.ach.secret .tip{filter:blur(6px);user-select:none}
-.ach.secret .face{filter:blur(4px)}
-.ach .reveal{margin-top:6px;font-size:13px;color:var(--bone);background:none;border:1px solid var(--line);border-radius:999px;padding:3px 10px;cursor:pointer}
-.jhead a{color:inherit}
+.achwrap{flex:1;overflow:auto;padding:16px;--ach-card:var(--deep);--ach-line:var(--line);--ach-ink:var(--bone);--ach-dim:var(--dim);--ach-accent:var(--red);--ach-done:var(--gold)}
+.achwrap[hidden]{display:none}
 footer{font-size:12px;color:var(--dim);padding:6px 14px;border-top:1px solid var(--line);background:var(--deep)}
 
 @media (max-width:820px){
@@ -204,17 +199,7 @@ footer{font-size:12px;color:var(--dim);padding:6px 14px;border-top:1px solid var
   <ul class="beasts" id="beasts"></ul>
 </section>
 
-<section class="journal" id="tab-ach" hidden>
-  <div class="jhead">
-    <div><h2 id="atotal"></h2><p data-i18n="aHint"></p></div>
-    <div class="filters" id="afilters" role="group">
-      <button type="button" data-f="all" aria-pressed="true" data-i18n="fAll"></button>
-      <button type="button" data-f="todo" aria-pressed="false" data-i18n="fTodo"></button>
-      <button type="button" data-f="done" aria-pressed="false" data-i18n="fDone"></button>
-    </div>
-  </div>
-  <ul class="beasts achs" id="achs"></ul>
-</section>
+<section class="achwrap" id="tab-ach" hidden></section>
 
 <footer data-i18n="footer"></footer>
 
@@ -223,20 +208,20 @@ footer{font-size:12px;color:var(--dim);padding:6px 14px;border-top:1px solid var
 <script src="../i18n.js"></script>
 <script src="data.js"></script>
 <script src="achievements.js"></script>
+<script src="guide.js"></script>
+<script src="../ach.js"></script>
 <script>
 const STRINGS = {
   it: {
-    tabAch: "Obiettivi", aDone: "Fatto in questo salvataggio", aTodo: "Non ancora in questo salvataggio", aUnknown: "Non si vede dal salvataggio",
-    aReveal: "Obiettivo segreto: mostra", aTotal: (d, n) => `${d} di ${n} fatti in questo salvataggio`, aTotalNoSave: n => `${n} obiettivi`,
-    aHint: 'Lo stato viene dal salvataggio: dice cosa ha fatto questa partita, non cosa ha sbloccato Steam. Guida completa sulla <a href="https://hollowknight.wiki/w/Achievements_(Silksong)" target="_blank" rel="noopener">wiki</a>.',
+    tabAch: "Obiettivi",
     back: "Tutti i giochi", load: "Carica il salvataggio (user1.dat)",
     pathA: "Salvataggi in", copy: "copia", copied: "copiato", pathB: "(nella cartella con il tuo ID Steam).",
     search: "Cerca", showAll: "Mostra tutto", hideAll: "Nascondi tutto", showGot: "Anche già presi",
     footer: 'Elenco oggetti e regole del salvataggio da <a href="https://github.com/Br3zzly/silksong-completionist">silksong-completionist</a> (MIT); mappa, posizioni, nemici e nomi dai file del gioco. Progetto amatoriale, non affiliato con Team Cherry.',
     notSave: "Questo file non è un salvataggio di Silksong. Scegli user1.dat (o user2-4.dat) dalla cartella dei salvataggi.",
-    total: n => `${n} voci`, found: (g, n) => `${g} di ${n} trovati`, mapgenie: "Apri su MapGenie",
+    total: n => `${n} voci`, found: (g, n) => `${g} di ${n} trovati`,
     tabMap: "Mappa", tabJournal: "Diario del Cacciatore",
-    grpCollect: "Collezionabili", grpCaches: "Scorte e segreti", grpEnemies: "Nemici", grpOff: "Non sulla mappa",
+    grpCollect: "Collezionabili", grpProgress: "Progressi", grpWorld: "Luoghi e oggetti", grpCaches: "Scorte e segreti", grpEnemies: "Nemici", grpOff: "Non sulla mappa",
     jHint: "Le voci mai incontrate sono in silhouette. Il numero è quante uccisioni mancano per completare la voce.",
     fAll: "Tutte", fTodo: "Da completare", fDone: "Complete",
     jTotal: (seen, done, n) => `${seen} di ${n} incontrati, ${done} completati`, jTotalNoSave: n => `${n} voci`,
@@ -245,17 +230,15 @@ const STRINGS = {
     inRoom: n => n === 0 ? "Boss o arena: si combatte in questa stanza" : n > 1 ? `${n} in questa stanza` : "1 in questa stanza", engNames: "Nomi di oggetti e descrizioni in inglese.",
   },
   en: {
-    tabAch: "Achievements", aDone: "Done in this save", aTodo: "Not yet in this save", aUnknown: "Can't tell from the save",
-    aReveal: "Secret achievement: show", aTotal: (d, n) => `${d} of ${n} done in this save`, aTotalNoSave: n => `${n} achievements`,
-    aHint: 'Status comes from your save: it shows what this playthrough has done, not what Steam has unlocked. Full guide on the <a href="https://hollowknight.wiki/w/Achievements_(Silksong)" target="_blank" rel="noopener">wiki</a>.',
+    tabAch: "Achievements",
     back: "All games", load: "Load your save (user1.dat)",
     pathA: "Saves are in", copy: "copy", copied: "copied", pathB: "(inside the folder named with your Steam ID).",
     search: "Search", showAll: "Show all", hideAll: "Hide all", showGot: "Include collected",
     footer: 'Item list and save rules from <a href="https://github.com/Br3zzly/silksong-completionist">silksong-completionist</a> (MIT); map, positions, enemies and names from the game files. Fan project, not affiliated with Team Cherry.',
     notSave: "This isn't a Silksong save. Pick user1.dat (or user2-4.dat) from the saves folder.",
-    total: n => `${n} items`, found: (g, n) => `${g} of ${n} found`, mapgenie: "Open on MapGenie",
+    total: n => `${n} items`, found: (g, n) => `${g} of ${n} found`,
     tabMap: "Map", tabJournal: "Hunter's Journal",
-    grpCollect: "Collectibles", grpCaches: "Caches and secrets", grpEnemies: "Enemies", grpOff: "Not on the map",
+    grpCollect: "Collectibles", grpProgress: "Progression", grpWorld: "Places and items", grpCaches: "Caches and secrets", grpEnemies: "Enemies", grpOff: "Not on the map",
     jHint: "Entries you've never met are shown as silhouettes. The number is how many kills are left to complete the entry.",
     fAll: "All", fTodo: "To complete", fDone: "Complete",
     jTotal: (seen, done, n) => `${seen} of ${n} encountered, ${done} completed`, jTotalNoSave: n => `${n} entries`,
@@ -279,17 +262,22 @@ const GROUPS = [
     "Rhinogrunds": ["Rinogrugni", "Rhinogrunds", "beast", "#5d5149"], "Covetous Pilgrims": ["Pellegrini avidi", "Covetous pilgrims", "beast", "#5d5149"],
     "Shardillards": ["Scheggiardilli", "Shardillards", "beast", "#5d5149"],
   }],
-  ["grpEnemies", { Journal: ["Diario del Cacciatore", "Hunter's Journal", null, "#3b2430"] }],
-  ["grpOff", {
-    "Abilities": ["Abilità", "Abilities"], "Tools": ["Strumenti", "Tools"], "Crests": ["Creste", "Crests"], "Relics": ["Reliquie", "Relics"],
-    "Bosses": ["Boss", "Bosses"], "Tasks": ["Desideri", "Wishes"], "Bellways": ["Campanovie", "Bellways"], "Ventrica Stations": ["Stazioni Ventrica", "Ventrica stations"],
-    "Mapping Supplies": ["Forniture per mappe", "Mapping supplies"], "Bellhome": ["Casa campana", "Bellhome"], "Materium": ["Materium", "Materium"],
-    "Mementos": ["Memento", "Mementos"], "Stats": ["Statistiche", "Stats"],
+  ["grpProgress", {
+    "Abilities": ["Abilità", "Abilities", "ability", "#6b3f7a"], "Tools": ["Strumenti", "Tools", "tool", "#7a3a3a"], "Crests": ["Creste", "Crests", "crest", "#6b3f7a"],
+    "Bosses": ["Boss", "Bosses", "boss", "#5a2a2a"], "Tasks": ["Desideri", "Wishes", "wish", "#7a5a2e"],
   }],
+  ["grpWorld", {
+    "Relics": ["Reliquie", "Relics", "relic", "#2f5f6f"], "Bellways": ["Via Campana", "Bellways", "bellway", "#5d5149"], "Ventrica Stations": ["Stazioni Ventrica", "Ventrica stations", "tube", "#5d5149"],
+    "Mapping Supplies": ["Forniture per mappe", "Mapping supplies", "quill", "#4d6670"], "Bellhome": ["Casacampana", "Bellhome", "bellhome", "#4d6670"],
+    "Materium": ["Materium", "Materium", "materium", "#4d6670"], "Mementos": ["Memento", "Mementos", "memento", "#5b4a8f"],
+  }],
+  ["grpEnemies", { Journal: ["Diario del Cacciatore", "Hunter's Journal", null, "#3b2430"] }],
+  ["grpOff", { "Stats": ["Statistiche", "Stats"] }],
 ];
 const CAT = Object.assign({}, ...GROUPS.map(g => g[1]));
-const OFF = new Set(Object.keys(GROUPS[3][1]));
-const HIDDEN_BY_DEFAULT = new Set(["Rosary Caches", "Shell Shard Caches", "Breakable Walls", "Void Masses", "Rhinogrunds", "Covetous Pilgrims", "Shardillards", "Journal"]);
+const OFF = new Set(Object.keys(GROUPS[GROUPS.length - 1][1]));
+const HIDDEN_BY_DEFAULT = new Set(["Rosary Caches", "Shell Shard Caches", "Breakable Walls", "Void Masses", "Rhinogrunds", "Covetous Pilgrims", "Shardillards", "Journal",
+  "Bosses", "Tasks", "Materium", "Mementos", "Bellhome", "Mapping Supplies"]);
 const t = I18N.t;
 const en = () => I18N.lang === "en";
 const gname = g => (CAT[g] || [g, g])[en() ? 1 : 0];
@@ -355,6 +343,7 @@ function checker(save) {
 let chk = null, got = null, filter = "all", query = "";
 const shown = new Set(Object.keys(CAT).filter(g => !HIDDEN_BY_DEFAULT.has(g) && !OFF.has(g)));
 const open = new Set();
+const TOGGLABLE = g => !OFF.has(g);
 const items = () => SS.items.map((it, i) => [it, i]).filter(([it]) => !chk || chk.inMode(it));
 const matches = s => !query || s.toLowerCase().includes(query);
 
@@ -394,13 +383,12 @@ const markerIcon = (color, state, inner) => L.divIcon({ className: "", iconSize:
 
 function itemPopup(it) {
   return `<h4>${esc(it.n)}</h4><p class="meta">${esc(gname(catOf(it)))}${it.r ? `, ${esc(zone(it.r))}` : ""}</p>
-    ${it.d ? `<p>${esc(it.d)}</p>` : ""}${it.m ? `<p><a href="${esc(it.m)}" target="_blank" rel="noopener">${t("mapgenie")}</a></p>` : ""}`;
+    ${it.d ? `<p>${esc(it.d)}</p>` : ""}`;
 }
 function enemyPopup(p) {
   const e = SS.journal[p[0]], s = beastState(e);
   return `<h4>${esc(beastName(e))}</h4><p class="meta">${esc(zone(p[3]))}, ${t("inRoom", p[4])}</p>
-    <p class="st ${s.cls === "done" ? "done" : ""}">${esc(s.text)}</p>
-    ${e.m ? `<p><a href="${esc(e.m)}" target="_blank" rel="noopener">${t("mapgenie")}</a></p>` : ""}`;
+    <p class="st ${s.cls === "done" ? "done" : ""}">${esc(s.text)}</p>`;
 }
 const itemMarkers = SS.items.map(it => it.p && L.marker([-it.p[1], it.p[0]]).bindPopup(() => itemPopup(it)));
 const enemyMarkers = SS.enemies.map(p => L.marker([-p[2], p[1]]).bindPopup(() => enemyPopup(p)));
@@ -435,8 +423,9 @@ function drawList() {
   const showGot = document.getElementById("showGot").checked;
   const all = items();
   let html = "";
-  for (const [gkey, cats] of GROUPS) {
-    html += `<div class="grp">${t(gkey)}</div>`;
+  GROUPS.forEach(([gkey, cats], gi) => {
+    const gs = Object.keys(cats).filter(TOGGLABLE), on = gs.filter(g => shown.has(g)).length;
+    html += gs.length ? `<label class="grp" data-grp="${gi}"><input type="checkbox"${on === gs.length ? " checked" : ""} data-mixed="${+(on > 0 && on < gs.length)}"> ${t(gkey)}</label>` : `<div class="grp">${t(gkey)}</div>`;
     for (const g of Object.keys(cats)) {
       let n, total, body;
       if (g === "Journal") {
@@ -452,16 +441,17 @@ function drawList() {
         const areas = {};
         for (const [it, i] of list) (areas[it.r ? zone(it.r) : ""] ??= []).push([it, i]);
         body = Object.entries(areas).map(([a, rs]) => `${a ? `<div class="area">${esc(a)}</div>` : ""}${rs.map(([it, i]) =>
-          `<li class="${got && got[i] ? "got" : ""}">${it.p ? `<button type="button" data-i="${i}">${esc(it.n)}</button>` : esc(it.n)}${!it.p && it.d ? `<span class="det">${esc(it.d)}</span>` : ""}${!it.p && it.m ? ` <a href="${esc(it.m)}" target="_blank" rel="noopener">${t("mapgenie")}</a>` : ""}</li>`).join("")}`).join("");
+          `<li class="${got && got[i] ? "got" : ""}">${it.p ? `<button type="button" data-i="${i}">${esc(it.n)}</button>` : esc(it.n)}${!it.p && it.d ? `<span class="det">${esc(it.d)}</span>` : ""}</li>`).join("")}`).join("");
       }
       const c = cats[g];
       const ico = c[2] ? `<img src="pins/${c[2]}.png" alt="">` : g === "Journal" ? `<span style="width:20px;height:20px;border-radius:50%;${faceStyle(SS.journal[0], 20)}"></span>` : "";
       html += `<details class="cat${shown.has(g) || OFF.has(g) ? "" : " off"}${got && n === total ? " done" : ""}" data-g="${esc(g)}"${open.has(g) || query ? " open" : ""}>
-        <summary>${OFF.has(g) ? "<span></span>" : `<button type="button" class="ico" data-toggle="${esc(g)}" style="--c:${c[3]}" aria-pressed="${shown.has(g)}" aria-label="${esc(gname(g))}">${ico}</button>`}
+        <summary>${OFF.has(g) ? "<span></span>" : `<label class="vis" data-toggle="${esc(g)}"><input type="checkbox"${shown.has(g) ? " checked" : ""} aria-label="${esc(gname(g))}"><span class="ico" style="--c:${c[3]}">${ico}</span></label>`}
         <span class="nm">${esc(gname(g))}</span><span class="n">${got || (g === "Journal" && chk) ? `${n}/` : ""}${total}</span></summary><ul>${body}</ul></details>`;
     }
-  }
+  });
   document.getElementById("cats").innerHTML = html;
+  document.querySelectorAll("#cats [data-mixed='1']").forEach(x => x.indeterminate = true);
   const total = all.length, n = got ? all.filter(([, i]) => got[i]).length : 0;
   document.getElementById("total").textContent = got ? t("found", n, total) : t("total", total);
   document.getElementById("pfill").style.width = got ? `${100 * n / total}%` : "0";
@@ -477,7 +467,7 @@ function drawJournal() {
     .filter(([, , s]) => filter === "all" || !chk || (filter === "done") === (s.cls === "done"))
     .map(([e, i, s]) => `<li class="beast ${s.cls}"><div class="face" style="${faceStyle(e, 64)}" role="img" aria-label="${esc(beastName(e))}"></div>
       <div><h3>${esc(beastName(e))}</h3><p class="st">${esc(s.text)}</p>
-        <p>${pinned.has(i) ? `<button type="button" class="onmap" data-e="${i}">${t("onMap")}</button> · ` : ""}${e.m ? `<a href="${esc(e.m)}" target="_blank" rel="noopener">${t("mapgenie")}</a>` : ""}</p>
+        ${pinned.has(i) ? `<p><button type="button" class="onmap" data-e="${i}">${t("onMap")}</button></p>` : ""}
         ${s.pct !== undefined ? `<div class="kbar"><i style="width:${s.pct}%"></i></div>` : ""}</div></li>`).join("");
 }
 
@@ -515,49 +505,15 @@ const ACH_CHECK = {
   SPEED_COMPLETION: p => ended(p) && p.completionPercentage >= 100 && p.playTime < 108000,
   STEEL_SOUL: p => ended(p) && p.permadeathMode > 0, STEEL_SOUL_FULL: p => ended(p) && p.permadeathMode > 0 && p.completionPercentage >= 100,
 };
-// how-to notes for achievements whose in-game text doesn't say where or how
-const TIPS = {
-  JOURNAL_HALF: ["Fill half of the Hunter's Journal and complete Nuu's wish “Bugs of Pharloom”.", "Completa metà del Diario del Cacciatore e il desiderio di Nuu “Bugs of Pharloom”."],
-  JOURNAL_FULL: ["Complete every Journal entry, then talk to Nuu again.", "Completa tutte le voci del Diario, poi parla di nuovo con Nuu."],
-  FLEAS_ALL: ["Rescue all 30 lost fleas, then visit Fleatopia.", "Salva tutte le 30 pulci perdute, poi visita Fleatopia."],
-  EVA_FINAL_QUEST: ["Keep unlocking crest slots with Eva until she gives you Sylphsong.", "Continua a sbloccare gli slot delle creste con Eva finché non ti dà Sylphsong."],
-  CITADEL_SONG: ["Collect the melodies of the Architect, the Librarian and the Conductor.", "Raccogli le melodie dell'Architetto, della Bibliotecaria e del Direttore."],
-  ENDING_A: ["End Act 2 against Grand Mother Silk without the curse or the Soul Snare.", "Chiudi l'Atto 2 contro Grand Mother Silk senza la maledizione e senza la Soul Snare."],
-  ENDING_C: ["Complete the wish “Silk and Soul” to get the Soul Snare before the fight.", "Completa il desiderio “Silk and Soul” per avere la Soul Snare prima dello scontro."],
-  ENDING_D: ["Fight Grand Mother Silk while you carry the Witch's curse.", "Affronta Grand Mother Silk mentre porti la maledizione della Strega."],
-  ENDING_E: ["Act 3 ending: defeat Lost Lace in the Abyss.", "Finale dell'Atto 3: sconfiggi Lost Lace nell'Abisso."],
+
+
+const achCheck = k => {
+  const p = SAVE_PD(), f = ACH_CHECK[k];
+  if (!p) return undefined;
+  return f == null ? null : !!(typeof f === "string" ? p[f] : f(p));
 };
-
-// ---- achievements: the save tells what this playthrough has done; Steam keeps the real unlocks
-let afilter = "all";
-const revealed = new Set();
-const achIcon = i => `background-image:url(achievements.webp);background-size:${ACH.cols * 64}px auto;background-position:-${(i % ACH.cols) * 64}px -${Math.floor(i / ACH.cols) * 64}px`;
-function achState(a) {
-  const p = SAVE_PD();
-  if (!p) return { cls: "", text: "" };
-  const f = ACH_CHECK[a.k];
-  if (f == null) return { cls: "unknown", text: t("aUnknown") };
-  return (typeof f === "string" ? p[f] : f(p)) ? { cls: "done", text: t("aDone") } : { cls: "", text: t("aTodo") };
-}
-function drawAch() {
-  const L = en() ? 0 : 1, rows = ACH.list.map((a, i) => [a, i, achState(a)]);
-  const done = rows.filter(([, , s]) => s.cls === "done").length;
-  document.getElementById("atotal").textContent = SAVE_PD() ? t("aTotal", done, rows.length) : t("aTotalNoSave", rows.length);
-  document.getElementById("achs").innerHTML = rows
-    .filter(([, , s]) => afilter === "all" || !SAVE_PD() || (afilter === "done") === (s.cls === "done"))
-    .map(([a, i, s]) => {
-      const secret = a.h && s.cls !== "done" && !revealed.has(i), tip = TIPS[a.k];
-      return `<li class="beast ach ${s.cls}${secret ? " secret" : ""}"><div class="face" style="${achIcon(i)}"></div>
-        <div><h3>${esc(a.n[L])}</h3><p class="d">${esc(a.d[L])}</p>${tip ? `<p class="tip">${esc(tip[L])}</p>` : ""}
-        ${s.text ? `<p class="st">${esc(s.text)}</p>` : ""}${secret ? `<button type="button" class="reveal" data-a="${i}">${t("aReveal")}</button>` : ""}</div></li>`;
-    }).join("");
-}
-document.getElementById("achs").addEventListener("click", e => {
-  const b = e.target.closest("[data-a]");
-  if (b) { revealed.add(+b.dataset.a); drawAch(); }
-});
-
-function render() { drawMap(); drawList(); drawJournal(); drawAch(); }
+ACH_UI.init(document.getElementById("tab-ach"), { wiki: "https://hollowknight.wiki/w/Achievements_(Silksong)", check: achCheck });
+function render() { drawMap(); drawList(); drawJournal(); ACH_UI.draw(); }
 
 function showTab(name) {
   document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-selected", x.dataset.tab === name));
@@ -576,6 +532,15 @@ function focusEnemy(ei) {
 }
 
 document.getElementById("cats").addEventListener("click", e => {
+  const gp = e.target.closest("[data-grp]");
+  if (gp) {  // group checkbox: all on unless they already all are
+    e.preventDefault();
+    const gs = Object.keys(GROUPS[+gp.dataset.grp][1]).filter(TOGGLABLE);
+    const all = gs.every(g => shown.has(g));
+    gs.forEach(g => all ? shown.delete(g) : shown.add(g));
+    drawMap(); drawList();
+    return;
+  }
   const tog = e.target.closest("[data-toggle]");
   if (tog) {
     e.preventDefault();
@@ -605,12 +570,13 @@ document.getElementById("showAll").onclick = () => { Object.keys(CAT).filter(g =
 document.getElementById("hideAll").onclick = () => { shown.clear(); drawMap(); drawList(); };
 document.getElementById("q").addEventListener("input", e => { query = e.target.value.trim().toLowerCase(); drawMap(); drawList(); });
 document.querySelector(".tabs").addEventListener("click", e => { const b = e.target.closest("[data-tab]"); if (b) showTab(b.dataset.tab); });
-document.querySelectorAll(".filters").forEach(g => g.addEventListener("click", e => {
+document.querySelector(".filters").addEventListener("click", e => {
   const b = e.target.closest("[data-f]");
   if (!b) return;
-  g.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b));
-  if (g.id === "afilters") { afilter = b.dataset.f; drawAch(); } else { filter = b.dataset.f; drawJournal(); }
-}));
+  filter = b.dataset.f;
+  document.querySelectorAll(".filters button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  drawJournal();
+});
 
 async function load(file) {
   const err = document.getElementById("err");

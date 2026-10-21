@@ -37,11 +37,37 @@ for o in rec_env.objects:
 CATS = {
     "Mask Shards": "mask", "Spool Fragments": "spool", "Memory Lockets": "locket", "Craftmetals": "metal", "Mossberries": "berry",
     "Pale Oil": "core", "Silkeaters": "silkeater", "Caches & Secrets": "rosary", "Unique Spawns": "beast", "Keys": "key",
-    "Upgrades": "core", "Lost Fleas": "flea",
+    "Upgrades": "core", "Lost Fleas": "flea", "Tools": "tool", "Abilities": "ability", "Crests": "crest", "Relics": "relic",
+    "Tasks": "wish", "Bellways": "bellway", "Ventrica Stations": "tube", "Mapping Supplies": "quill", "Bellhome": "bellhome",
+    "Materium": "materium", "Mementos": "memento", "Bosses": "boss",
 }
 SECTION_PIN = {"Shell Shard Caches": "shard", "Breakable Walls": "wall", "Void Masses": "void"}
 
 def infos(p): return p if isinstance(p, list) else [p]
+
+# ss_scan_refs.py: scenes whose components point at an item's asset or name its save flag. Only clear cases become pins:
+# a pickup/shop/station object, or every remaining reference in one room. Shared prefabs (weaver shrines, wish boards,
+# benches, the mapper) reference many items at once and are ignored.
+refs = json.load(open("ss_refs.json")) if os.path.exists("ss_refs.json") else {}
+JUNK = re.compile(r"bench|mapper|loader|area title|caravan|return scene|control|states|menu|credits|board|shrine weaver|template", re.I)
+GOOD = re.compile(r"pickup|collectable item|toll machine|travel tube|inspect region|shop|merchant|crest upgrade shrine|plinney|memento", re.I)
+REF_KIND = {"mementoDeposit": "collectable"}
+def ref_pin(ps):
+    p = ps[0]
+    ids = p["internalId"] if isinstance(p["internalId"], list) else [p["internalId"]]
+    if p["type"] == "flagMin":
+        ids = ids[:1]
+    flag = p["type"].startswith("flag") or p["type"] == "quill"
+    hits = [h for i in ids for h in refs.get(("flag:" if flag else REF_KIND.get(p["type"], p["type"]) + ":") + str(i), [])]
+    hits = [h for h in hits if not JUNK.search(h[3] or "") and (h[1] or h[2]) and to_map(re.sub(r"(_boss.*|_memory)$", "", h[0].lower()), None, None)]
+    good = [h for h in hits if GOOD.search(h[3] or "")]
+    if len({h[0] for h in good}) == 1:
+        hits = good
+    elif len({re.sub(r"(_boss.*)$", "", h[0].lower()) for h in hits}) != 1:
+        return None
+    scene, x, y = hits[0][:3]
+    base = scene if to_map(scene, None, None) else re.sub(r"(_boss.*|_memory)$", "", scene.lower())
+    return to_map(base, (x, y), size_ci.get(scene.lower()) or size_ci.get(base))
 
 def to_map(scene, pos, size):
     """Map pixel position of a scene-space point, or the room centre when it can't be placed exactly."""
@@ -68,7 +94,7 @@ for cat in d:
             if cat["name"] == "Hunter's Journal":
                 jid = ps[0]["internalId"]
                 rec = {"n": it["name"], "it": J_IT.get(REC_KEY.get(jid, ""), it["name"]), "id": jid,
-                       "k": (it.get("additionalMeta") or {}).get("killsRequired", 1), "m": it.get("mapLink", "")}
+                       "k": (it.get("additionalMeta") or {}).get("killsRequired", 1)}
                 if jid in best["index"]:
                     rec["i"] = best["index"][jid]
                 else:  # no icon in the game atlas: fall back to the dictionary's image
@@ -78,7 +104,7 @@ for cat in d:
                 journal.append(rec)
                 continue
             rec = {"c": cat["name"], "s": sec.get("name") or "", "n": it["name"], "d": it.get("completionDetails", ""),
-                   "m": it.get("mapLink", ""), "a": it.get("whichAct", 0), "t": it["parsingInfo"]}
+                   "a": it.get("whichAct", 0), "t": it["parsingInfo"]}
             if it.get("onlyFoundInSteelSoulMode"): rec["ss"] = 1
             if it.get("onlyFoundInClassicMode"): rec["cl"] = 1
             pin = None
@@ -87,6 +113,8 @@ for cat in d:
                     pin = place(p["internalId"][0], p["internalId"][1]); break
                 if p["type"] == "flag" and p["internalId"].startswith("SavedFlea_"):
                     pin = place(p["internalId"][len("SavedFlea_"):], "*flea*"); break
+            if not pin and not ps[0]["type"].startswith("sceneData"):
+                pin = ref_pin(ps)
             if pin and cat["name"] in CATS:
                 rec["p"], rec["r"] = pin
                 rec["i"] = SECTION_PIN.get(sec.get("name"), CATS[cat["name"]])
@@ -140,6 +168,19 @@ for jid, key in MANUAL_ZONE.items():
     lab = next((l for l in labels["labels"] if l["key"] == key), None)
     if jid in jidx and jidx[jid] not in pinned and lab:
         epins.append([jidx[jid], round(lab["x"]), round(lab["y"]), key, 0])
+
+# Bosses without a pin of their own sit where their Hunter's Journal entry is pinned (same name or journal id).
+first_pin = {}
+for e in epins:
+    first_pin.setdefault(e[0], e)
+by_name = {j["n"].lower(): i for i, j in enumerate(journal)}
+for rec in items:
+    if rec["c"] == "Bosses" and "p" not in rec:
+        t = infos(rec["t"])[0]
+        ji = jidx.get(t["internalId"]) if t["type"] == "journal" else by_name.get(rec["n"].lower())
+        if ji in first_pin:
+            e = first_pin[ji]
+            rec["p"], rec["r"], rec["i"] = [e[1], e[2]], e[3], CATS["Bosses"]
 
 meta = {"size": rooms["size"], "cell": best["cell"], "cols": best["cols"], "zones": labels["zones"], "labels": labels["labels"]}
 with open(os.path.join(OUT, "data.js"), "w", encoding="utf8") as f:

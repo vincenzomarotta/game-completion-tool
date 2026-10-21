@@ -13,6 +13,10 @@ PINS = {
     "metal": "Hornet_Tool_Metal", "berry": "I_moss_berry", "core": "Icon_Pristine_Core", "silkeater": "Silk_Grub_Suck_no_cocoon0000",
     "rosary": "I_rosary_necklace_0002_1", "shard": "I_shell_shard_icon_large", "wall": "I_map", "void": "Hornet_icon_0004_R_ancient_egg",
     "beast": "Icon_Beast_Shard", "key": "I_slab_key", "flea": "QI_Flea", "token": "Hornet_bellway_token",
+    "tool": "T_straight_pin", "ability": "Inv_0029_spell_core_outer_icons_0000_1_harpoon_dash", "crest": "Hornet_Inv_pane_icons_0001_crest",
+    "relic": "Hornet_icon_0002_R_weaver_record", "wish": "Hornet_Inv_pane_icons_0002_wish", "bellway": "pin_stag_station_shop_icon",
+    "tube": "pin_tube_station_shop_icon", "quill": "I_quill_and_map", "bellhome": "pin_bench_shop_icon", "materium": "icon_silk_materium",
+    "memento": "surface_memento", "boss": "Kill_quest_icon",
 }
 env = UnityPy.load(A + r"\inventory.spriteatlas.bundle")
 sp = {o.peek_name(): o for o in env.objects if o.type.name == "Sprite"}

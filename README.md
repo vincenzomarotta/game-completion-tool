@@ -8,16 +8,17 @@ Site: https://vincenzomarotta.github.io/game-completion-tool/
 
 | Game | Folder | Save file | What it shows |
 |---|---|---|---|
-| Death's Door | `deaths-door/` | `Save_slotN.sav` in `%USERPROFILE%\AppData\LocalLow\Acid Nerve\DeathsDoor\SAVEDATA` | Shiny things, seeds, pots, shrines, soul orbs, tablets, by category or area |
+| Death's Door | `deaths-door/` | `Save_slotN.sav` in `%USERPROFILE%\AppData\LocalLow\Acid Nerve\DeathsDoor\SAVEDATA` | Shiny things, seeds, pots, shrines, soul orbs, tablets, by category or area; achievement guide |
 | Hollow Knight | `hollow-knight/` | `userN.dat` in `%USERPROFILE%\AppData\LocalLow\Team Cherry\Hollow Knight` | Interactive map in the game's colours with area names, item and enemy pins, Hunter's Journal, achievement guide |
 | Hollow Knight: Silksong | `silksong/` | `userN.dat` in `%USERPROFILE%\AppData\LocalLow\Team Cherry\Hollow Knight Silksong\<id>` | Interactive map in the game's colours with area names, item and enemy pins, Hunter's Journal, achievement guide |
-| TUNIC | `tunic/` | the newest `.tunic` file in `%USERPROFILE%\AppData\LocalLow\Andrew Shouldice\Secret Legend\SAVES` | Chests, pages, fairies, secrets by region, with top-down mini maps |
+| TUNIC | `tunic/` | the newest `.tunic` file in `%USERPROFILE%\AppData\LocalLow\Andrew Shouldice\Secret Legend\SAVES` | Chests, pages, fairies, secrets by region, with top-down mini maps; achievement guide |
 
 ## Data sources
 
 - **Death's Door**: locations and save keys from [DeathsDoor.ItemChanger](https://github.com/dpinela/DeathsDoor.ItemChanger) (public domain).
 - **Hollow Knight**: locations, save rules and pin art from [MapChanger](https://github.com/syyePhenomenol/MapChanger) and [RandomizerMod](https://github.com/homothetyhk/RandomizerMod); journal areas from [hollow-knight-completion-check](https://github.com/ReznoRMichael/hollow-knight-completion-check). The map, journal portraits, names and kill counts are read from the game files.
-- **Silksong**: item list and save rules from [silksong-completionist](https://github.com/Br3zzly/silksong-completionist) (MIT). The map and item positions are read from the game files.
+- **Silksong**: item list and save rules from [silksong-completionist](https://github.com/Br3zzly/silksong-completionist) (MIT). The map and item positions are read from the game files: scene objects, plus the pickups, shops and stations that reference each item.
+- **Achievements**: Hollow Knight and Silksong names and icons from the game files; Death's Door and TUNIC from their public Steam pages. The how-to guides (`guide.js` in each folder) are written by hand.
 - **TUNIC**: locations and names from [TUNIC Randomizer](https://github.com/silent-destroyer/tunic-randomizer) (MIT). The Ruined Atoll key has no readable save flag and is listed as "check by hand".
 
 ## Regenerating the data
@@ -25,7 +26,8 @@ Site: https://vincenzomarotta.github.io/game-completion-tool/
 The scripts in `tools/` rebuild the generated files. They read the game install, so you need the games installed, plus Python with `UnityPy`, `TypeTreeGeneratorAPI`, `pycryptodome`, `dnfile` and `Pillow`. Run them from a folder that holds clones of the source repositories listed above.
 
 - Hollow Knight: `hk_render_map.py` (map, colours and area labels), `hk_build_data.py hollow-knight/data.js` (locations), `hk_kill_counts.py hk_kills.json` then `hk_build_bestiary.py hollow-knight` (journal), `hk_scan_enemies.py` and `hk_scan_boss_scenes.py`, then `hk_build_enemies.py hollow-knight/enemies.js` (enemy and boss pins), `hk_build_achievements.py hollow-knight` (achievements).
-- Silksong: export the silksong-completionist dictionary to `ss/dict.json`, then `ss_render_map.py` (map, colours and area labels), `ss_scan_scenes.py` (object positions), `ss_scan_enemies.py` (enemy positions), `ss_scan_boss_scenes.py silksong/data.js` (boss scenes), `ss_build_assets.py silksong` (pins and journal portraits), `ss_build_data.py silksong` (items and journal), `ss_build_achievements.py silksong` (achievements).
+- Silksong: export the silksong-completionist dictionary to `ss/dict.json`, then `ss_render_map.py` (map, colours and area labels), `ss_scan_scenes.py` (object positions), `ss_scan_enemies.py` (enemy positions), `ss_scan_boss_scenes.py silksong/data.js` (boss scenes), `ss_scan_refs.py` (where items are picked up, sold or unlocked), `ss_build_assets.py silksong` (pins and journal portraits), `ss_build_data.py silksong` (items and journal), `ss_build_achievements.py silksong` (achievements).
+- Death's Door and TUNIC achievements: `steam_build_achievements.py 894020 deaths-door` and `steam_build_achievements.py 553420 tunic`.
 - Link preview image and icon: `make_og.py .`.
 - TUNIC: `tunic_build_data.py tunic/data.js [save.tunic]` (prints counts when given a save).
 

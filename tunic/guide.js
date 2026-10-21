@@ -1,0 +1,43 @@
+// How to get each achievement, [English, Italian, Italian description]. Written by hand (Steam only has English text).
+// Place names stay in English like the rest of the page. Secret codes are left out on purpose: they're in the manual.
+window.GUIDE = (() => {
+const CODE = ["The code to enter is hidden in the manual pages.", "Il codice da inserire è nascosto nelle pagine del manuale."];
+return {
+  STICK: ["At the very start, in the area to the left of the first stairs: pick up the stick.", "All'inizio, nella zona a sinistra delle prime scale: raccogli il bastone.", "Hai trovato un bastone"],
+  SWORD: ["In the first Hero's Grave, past the East Forest checkpoint.", "Nella prima Hero's Grave, dopo il checkpoint di East Forest.", "Hai trovato una spada"],
+  RESURRECTION: ["Die once: you get resurrected at the last shrine.", "Muori una volta: vieni resuscitato all'ultimo altare.", "Sei stato resuscitato"],
+  EASTBELL: ["Climb through the Guardhouse past East Forest, beat the Guard Captain and hit the bell at the top of the Forest Belltower.", "Attraversa la Guardhouse dopo East Forest, batti il Guard Captain e colpisci la campana in cima alla Forest Belltower.", "Hai suonato la campana orientale"],
+  WESTBELL: ["Beat the Garden Knight in West Garden, then hit the bell of the western belltower.", "Batti il Garden Knight nel West Garden, poi colpisci la campana del campanile occidentale.", "Hai suonato la campana occidentale"],
+  FUSE: ["Activate one of the strange devices (a fuse) by holding the interact button on it.", "Attiva uno degli strani dispositivi (un fusibile) tenendo premuto il tasto di interazione.", "Hai attivato uno strano dispositivo"],
+  OFFERING: ["At a shrine, spend money and an offering item to upgrade a stat.", "A un altare, spendi soldi e un oggetto offerta per potenziare una statistica.", "Hai fatto un'offerta"],
+  HEX1: ["Defeat the Siege Engine in the Eastern Vault Fortress and take the red key to the Sealed Temple.", "Sconfiggi il Siege Engine nell'Eastern Vault Fortress e porta la chiave rossa al Sealed Temple.", "Hai trovato la chiave rossa"],
+  HEX2: ["Defeat the Librarian at the top of the Library and take the green key.", "Sconfiggi il Librarian in cima alla Library e prendi la chiave verde.", "Hai trovato la chiave verde"],
+  HEX3: ["Defeat the Boss Scavenger at the bottom of the Quarry / Rooted Ziggurat and take the blue key.", "Sconfiggi il Boss Scavenger in fondo alla Quarry / Rooted Ziggurat e prendi la chiave blu.", "Hai trovato la chiave blu"],
+  GYRO: ["Place all three coloured keys in the Sealed Temple.", "Metti tutte e tre le chiavi colorate nel Sealed Temple.", "Hai completato la raccolta delle chiavi"],
+  DASH: ["Clear the six fights of the Cathedral Gauntlet under the Cathedral (Swamp) to earn the prize.", "Supera i sei scontri del Cathedral Gauntlet sotto la Cathedral (Swamp) per ottenere il premio.", "Hai ottenuto il premio della Cattedrale"],
+  RELICS: ["With the Cathedral's prize, visit each Hero's Grave and pray there to restore your body.", "Con il premio della Cattedrale, visita ogni Hero's Grave e prega lì per ripristinare il corpo.", "Hai ripristinato la forma corporea"],
+  BADEND: ["Defeat The Heir and take the first ending. Do it before completing the manual, or it becomes unavailable on that save.", "Sconfiggi The Heir e scegli il primo finale. Fallo prima di completare il manuale, altrimenti su quel salvataggio non è più disponibile.", "Hai trovato il tuo giusto posto"],
+  MANUAL: ["Collect all 28 manual pages and follow them to the true ending.", "Raccogli tutte le 28 pagine del manuale e seguile fino al vero finale.", "Hai completato il manuale"],
+  FAIRY: ["Free one fairy: stand at a fairy spot and enter the holy cross code it shows. Fairies are in the Fairies list on this page.", "Libera una fata: mettiti nel punto della fata e inserisci il codice della santa croce che mostra. Le fate sono nell'elenco Fate di questa pagina.", "Hai liberato una fata amica"],
+  GT1: ["Behind a puzzle wall. " + CODE[0], "Dietro un muro con enigma. " + CODE[1], "Hai trovato il tesoro segreto n. 1"],
+  GT2: ["In the Cathedral at night: open the two hidden doors in the library and enter the code at the dead end past the bridge, then come back by day. " + CODE[0], "Nella Cathedral di notte: apri le due porte nascoste della biblioteca e inserisci il codice nel vicolo cieco dopo il ponte, poi torna di giorno. " + CODE[1], "Hai trovato il tesoro segreto n. 2"],
+  GT3: ["In front of the windmill. " + CODE[0], "Davanti al mulino a vento. " + CODE[1], "Hai trovato il tesoro segreto n. 3"],
+  GT4: ["On a small island off the beach: stand in the loop next to the chest with the sound off for a minute, then enter the code at the edge of the grass.", "Su un'isoletta al largo della spiaggia: resta nell'anello vicino alla cassa con l'audio spento per un minuto, poi inserisci il codice al bordo dell'erba.", "Hai trovato il tesoro segreto n. 4"],
+  GT5: ["In the graveyard: kick four skulls into the water hole.", "Nel cimitero: calcia quattro teschi nella buca d'acqua.", "Hai trovato il tesoro segreto n. 5"],
+  GT6: ["Lower forest: hit the enemy on the high ledge with Fire Wand and Ice Dagger together, then grapple up.", "Foresta bassa: colpisci il nemico sulla sporgenza alta con Fire Wand e Ice Dagger insieme, poi aggrappati in cima.", "Hai trovato il tesoro segreto n. 6"],
+  GT7: ["In the fairy room behind the waterfall: the chest appears once every fairy is free.", "Nella stanza delle fate dietro la cascata: la cassa appare quando tutte le fate sono libere.", "Hai trovato il tesoro segreto n. 7"],
+  GT8: ["Just outside the house with the chimes. " + CODE[0], "Appena fuori dalla casa con i campanelli a vento. " + CODE[1], "Hai trovato il tesoro segreto n. 8"],
+  GT9: ["On the platform where the game starts. " + CODE[0], "Sulla piattaforma dove inizia il gioco. " + CODE[1], "Hai trovato il tesoro segreto n. 9"],
+  GT10: ["Ruined Atoll: follow the path to the far south-west.", "Ruined Atoll: segui il sentiero fino all'estremo sud-ovest.", "Hai trovato il tesoro segreto n. 10"],
+  GT11: ["Just north of the Hero's Grave near the Eastern Vault: hit the four leaf piles.", "Appena a nord della Hero's Grave vicino all'Eastern Vault: colpisci i quattro mucchi di foglie.", "Hai trovato il tesoro segreto n. 11"],
+  GT12: ["In the far south-west of the ethereal world: follow the hidden path.", "All'estremo sud-ovest del mondo etereo: segui il sentiero nascosto.", "Hai trovato il tesoro segreto n. 12"],
+  GRASS: ["Cut 1000 blades of short grass with your weapon. It comes naturally over a playthrough.", "Taglia 1000 fili d'erba bassa con l'arma. Arriva da solo nel corso della partita.", "Hai tagliato 1000 fili d'erba"],
+  PIGGYBANKS: ["Hold 10 money banks (the fox-shaped piggy banks) at once without smashing them. There are 12 in the game.", "Tieni 10 salvadanai (quelli a forma di volpe) contemporaneamente senza romperli. Nel gioco ce ne sono 12.", "Hai avuto 10 salvadanai contemporaneamente"],
+  COIN1: ["Throw a coin into a well to make a wish.", "Lancia una moneta in un pozzo per esprimere un desiderio.", "Hai espresso un desiderio"],
+  COIN15: ["Make 15 wishes. The wells are in the Coins in the well list on this page; every few wishes open a relic slot.", "Esprimi 15 desideri. I pozzi sono nell'elenco Monete nel pozzo di questa pagina; ogni tot desideri si apre uno slot per reliquie.", "Hai espresso 15 desideri"],
+  ROLLSTAB: ["Attack during a roll (press attack while rolling).", "Attacca durante una capriola (premi attacco mentre rotoli).", "Hai eseguito alla perfezione una tecnica speciale"],
+  WRONGFIGHT: ["Manual page 38 hints at it: get the weapon it shows before picking up the sword. Easiest on a fresh save with the accessibility options on.", "La pagina 38 del manuale lo suggerisce: ottieni l'arma che mostra prima di raccogliere la spada. Più facile su un nuovo salvataggio con le opzioni di accessibilità attive.", "Hai trovato una certa arma prima della spada"],
+  FREEZESELF: ["Throw an ice bomb at your own feet.", "Lancia una bomba di ghiaccio ai tuoi piedi.", "Ti sei congelato da solo"],
+  BONUSBOMB: ["Read the margin notes on manual page 17 and do what they hint at.", "Leggi le note a margine della pagina 17 del manuale e fai quello che suggeriscono.", "Hai capito il margine di pagina 17"],
+};
+})();

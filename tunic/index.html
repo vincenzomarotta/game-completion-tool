@@ -19,6 +19,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Alegreya+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../ach.css">
 <style>
 :root{
   --paper:#ece2c6; --leaf:#e4d7b4; --ink:#1d4a55; --ink-soft:#4f6f74; --rule:#c9b98f;
@@ -96,6 +97,12 @@ footer{margin-top:56px;font-size:14px;color:var(--ink-soft);border-top:1px solid
   .mini{max-width:320px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.tabs{display:flex;gap:3px;width:max-content;margin:0 0 24px;border:1px solid var(--rule);border-radius:10px;padding:3px;background:var(--leaf)}
+.tabs button{font:500 16px var(--body);color:var(--ink-soft);background:none;border:0;border-radius:7px;padding:8px 16px;cursor:pointer}
+.tabs button:hover{color:var(--ink)}
+.tabs button[aria-selected=true]{color:var(--paper);background:var(--ink)}
+#tab-ach{--ach-card:var(--leaf);--ach-line:var(--rule);--ach-ink:var(--ink);--ach-dim:var(--ink-soft);--ach-accent:var(--fox);--ach-done:var(--gold);margin-bottom:40px}
+#tab-ach[hidden],#tab-items[hidden]{display:none}
 </style>
 </head>
 <body>
@@ -117,21 +124,32 @@ footer{margin-top:56px;font-size:14px;color:var(--ink-soft);border-top:1px solid
     </div>
   </section>
 
+<nav class="tabs" role="tablist">
+  <button type="button" role="tab" data-tab="items" aria-selected="true" data-i18n="tabItems"></button>
+  <button type="button" role="tab" data-tab="ach" aria-selected="false" data-i18n="tabAch"></button>
+</nav>
+  <div id="tab-items">
   <div class="controls">
     <h2 id="total"></h2>
     <label class="toggle"><input type="checkbox" id="showGot"> <span data-i18n="showGot"></span></label>
   </div>
   <div class="chips" id="chips"></div>
   <div class="regions" id="regions"></div>
+  </div>
+  <section id="tab-ach" hidden></section>
 
   <footer data-i18n="footer"></footer>
 </main>
 
 <script src="../i18n.js"></script>
 <script src="data.js"></script>
+<script src="achievements.js"></script>
+<script src="guide.js"></script>
+<script src="../ach.js"></script>
 <script>
 const STRINGS = {
   it: {
+    tabItems: "Oggetti", tabAch: "Obiettivi",
     back: "Tutti i giochi", load: "Carica il salvataggio",
     lede: "Carica il salvataggio e scopri quali forzieri, pagine, fate e segreti ti mancano, regione per regione, con una mini-mappa vista dall'alto. Il file resta sul tuo computer.",
     pathA: "Salvataggi in", copy: "copia", copied: "copiato",
@@ -144,6 +162,7 @@ const STRINGS = {
     shared: "Questo forziere condivide il salvataggio con quello della Stick House.",
   },
   en: {
+    tabItems: "Items", tabAch: "Achievements",
     back: "All games", load: "Load your save",
     lede: "Load your save and see which chests, pages, fairies and secrets you're missing, region by region, with a top-down mini map. The file stays on your computer.",
     pathA: "Saves are in", copy: "copy", copied: "copied",
@@ -255,6 +274,14 @@ document.getElementById("chips").addEventListener("click", e => {
 });
 document.getElementById("showGot").onchange = render;
 
+// Achievements the save can answer, from the tracked locations.
+const groupGot = (g, any) => { const r = TUNIC.map((l, i) => [l, i]).filter(([l]) => l.g === g); return any ? r.some(([, i]) => got[i]) : r.every(([, i]) => got[i]); };
+const TUNIC_ACH = {
+  FAIRY: () => groupGot("Fairies", true), MANUAL: () => groupGot("Pages"), COIN15: () => groupGot("Well"),
+  DASH: () => TUNIC.some((l, i) => l.n === "Gauntlet Reward" && got[i]),
+};
+ACH_UI.init(document.getElementById("tab-ach"), { check: k => !got ? undefined : TUNIC_ACH[k] ? TUNIC_ACH[k]() : null });
+
 async function load(file) {
   const err = document.getElementById("err");
   err.textContent = "";
@@ -262,6 +289,7 @@ async function load(file) {
     const has = parseSave(await file.text());
     got = TUNIC.map(l => !!l.t && has(l.t));
     render();
+    ACH_UI.draw();
   } catch (e) { err.textContent = e.message; }
 }
 document.getElementById("file").onchange = e => e.target.files[0] && load(e.target.files[0]);
@@ -271,7 +299,14 @@ document.getElementById("cp").onclick = e => {
   navigator.clipboard?.writeText(document.getElementById("p").textContent);
   e.target.textContent = t("copied");
 };
-I18N.init(STRINGS, () => { document.getElementById("err").textContent = ""; render(); });
+
+function showTab(name) {
+  document.querySelectorAll(".tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === name));
+  document.getElementById("tab-items").hidden = name !== "items";
+  document.getElementById("tab-ach").hidden = name !== "ach";
+}
+document.querySelector(".tabs").addEventListener("click", e => { const b = e.target.closest("[data-tab]"); if (b) showTab(b.dataset.tab); });
+I18N.init(STRINGS, () => { document.getElementById("err").textContent = ""; render(); ACH_UI.draw(); });
 </script>
 </body>
 </html>
