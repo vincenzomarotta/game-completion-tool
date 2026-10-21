@@ -2,7 +2,7 @@
 
 Carica il salvataggio di un gioco e scopri cosa ti manca per il 100% e dove trovarlo. Tutto gira nel browser: il file non viene caricato da nessuna parte.
 
-Sito: https://vincenzomarotta.github.io/game-completition-tool/
+Sito: https://vincenzomarotta.github.io/game-completion-tool/
 
 ## Giochi
 
