@@ -1,30 +1,37 @@
 # Game Completion Tool
 
-Carica il salvataggio di un gioco e scopri cosa ti manca per il 100% e dove trovarlo. Tutto gira nel browser: il file non viene caricato da nessuna parte. Interfaccia in italiano e inglese.
+Load your save file and see what's left for 100% completion, and where to find it. Everything runs in the browser: your save never leaves your computer. The site is in English and Italian.
 
-Sito: https://vincenzomarotta.github.io/game-completion-tool/
+Site: https://vincenzomarotta.github.io/game-completion-tool/
 
-## Giochi
+## Games
 
-- **Death's Door** (`deaths-door/`): legge `Save_slotN.sav` da `%USERPROFILE%\AppData\LocalLow\Acid Nerve\DeathsDoor\SAVEDATA`. Posizioni e chiavi del salvataggio da [DeathsDoor.ItemChanger](https://github.com/dpinela/DeathsDoor.ItemChanger) (pubblico dominio).
-- **Hollow Knight** (`hollow-knight/`): legge `userN.dat` da `%USERPROFILE%\AppData\LocalLow\Team Cherry\Hollow Knight`, con mappa interattiva. Posizioni e regole del salvataggio da [MapChanger](https://github.com/syyePhenomenol/MapChanger) e [RandomizerMod](https://github.com/homothetyhk/RandomizerMod) (GPL/LGPL). La mappa è composta dalle stanze della mappa di gioco di Team Cherry.
-- **Tunic** (`tunic/`): legge il file `.tunic` più recente da `%USERPROFILE%\AppData\LocalLow\Andrew Shouldice\Secret Legend\SAVES`, con una mini-mappa vista dall'alto per regione. Posizioni e nomi da [TUNIC Randomizer](https://github.com/silent-destroyer/tunic-randomizer) (MIT). La chiave dell'Atoll non ha un flag leggibile nel salvataggio e va controllata a mano.
+| Game | Folder | Save file | What it shows |
+|---|---|---|---|
+| Death's Door | `deaths-door/` | `Save_slotN.sav` in `%USERPROFILE%\AppData\LocalLow\Acid Nerve\DeathsDoor\SAVEDATA` | Shiny things, seeds, pots, shrines, soul orbs, tablets, by category or area |
+| Hollow Knight | `hollow-knight/` | `userN.dat` in `%USERPROFILE%\AppData\LocalLow\Team Cherry\Hollow Knight` | Interactive map with item pins, Hunter's Journal |
+| Hollow Knight: Silksong | `silksong/` | `userN.dat` in `%USERPROFILE%\AppData\LocalLow\Team Cherry\Hollow Knight Silksong\<id>` | Interactive map with item pins, Hunter's Journal |
+| TUNIC | `tunic/` | the newest `.tunic` file in `%USERPROFILE%\AppData\LocalLow\Andrew Shouldice\Secret Legend\SAVES` | Chests, pages, fairies, secrets by region, with top-down mini maps |
 
-## Rigenerare i dati di Hollow Knight
+## Data sources
 
-Gli script in `tools/` vanno lanciati da una cartella che contiene i cloni di MapChanger, RandomizerMod e HollowKnight.ItemChanger sotto `hk/`, con il gioco installato (serve `UnityPy` e `Pillow`):
+- **Death's Door**: locations and save keys from [DeathsDoor.ItemChanger](https://github.com/dpinela/DeathsDoor.ItemChanger) (public domain).
+- **Hollow Knight**: locations, save rules and pin art from [MapChanger](https://github.com/syyePhenomenol/MapChanger) and [RandomizerMod](https://github.com/homothetyhk/RandomizerMod); journal areas from [hollow-knight-completion-check](https://github.com/ReznoRMichael/hollow-knight-completion-check). The map, journal portraits, names and kill counts are read from the game files.
+- **Silksong**: item list and save rules from [silksong-completionist](https://github.com/Br3zzly/silksong-completionist) (MIT). The map and item positions are read from the game files.
+- **TUNIC**: locations and names from [TUNIC Randomizer](https://github.com/silent-destroyer/tunic-randomizer) (MIT). The Ruined Atoll key has no readable save flag and is listed as "check by hand".
 
-1. `python hk_render_map.py`: compone `hk_map.webp` e `hk_rooms.json` dai file del gioco.
-2. `python hk_build_data.py hollow-knight/data.js`: genera i dati delle posizioni.
+## Regenerating the data
 
-## Rigenerare i dati di Tunic
+The scripts in `tools/` rebuild the generated files. They read the game install, so you need the games installed, plus Python with `UnityPy`, `TypeTreeGeneratorAPI`, `pycryptodome`, `dnfile` and `Pillow`. Run them from a folder that holds clones of the source repositories listed above.
 
-`python tools/tunic_build_data.py tunic/data.js [salvataggio.tunic]` da una cartella con il clone di tunic-randomizer sotto `tunic/`. Con un salvataggio come secondo argomento stampa anche i conteggi, utile per controllare.
+- Hollow Knight: `hk_render_map.py` (map), `hk_build_data.py hollow-knight/data.js` (locations), `hk_kill_counts.py hk_kills.json` then `hk_build_bestiary.py hollow-knight` (journal).
+- Silksong: export the silksong-completionist dictionary to `ss/dict.json`, then `ss_render_map.py` (map), `ss_scan_scenes.py` (object positions), `ss_build_assets.py silksong` (pins and journal portraits), `ss_build_data.py silksong` (items and journal).
+- TUNIC: `tunic_build_data.py tunic/data.js [save.tunic]` (prints counts when given a save).
 
-## Aggiungere un gioco
+## Adding a game
 
-Crea una cartella con il suo `index.html`, usa `i18n.js` per le due lingue e aggiungi una card nella home (`index.html`).
+Create a folder with its own `index.html`, use `i18n.js` for the two languages, and add a card to the home page (`index.html`).
 
-## Licenza
+## License
 
-GPL-3.0 (vedi `LICENSE`). Progetto amatoriale, non affiliato con gli sviluppatori dei giochi.
+GPL-3.0 (see `LICENSE`). Fan project, not affiliated with the developers of these games. Game maps, portraits and names belong to their owners.

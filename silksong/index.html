@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Silksong Completionist</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Alegreya+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root{
+  --abyss:#120a0c; --deep:#1c1114; --ink:#28181c; --line:#3d262c;
+  --bone:#efe6dc; --dim:#a8979a; --red:#d6403f; --gold:#e3c27c;
+  --display:"Cinzel",Georgia,serif; --body:"Alegreya Sans",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--abyss);color:var(--bone);font:16px/1.5 var(--body)}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+a{color:inherit}
+header{max-width:1400px;margin:0 auto;padding:18px 16px 20px;display:grid;grid-template-columns:1fr auto;gap:8px 24px;align-items:end}
+.top{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center}
+.back{color:var(--dim);font-size:15px;text-underline-offset:3px}
+.lang{display:flex;gap:2px}
+.lang button{font:500 14px var(--body);color:var(--dim);background:none;border:0;padding:4px 8px;cursor:pointer;border-radius:4px}
+.lang button[aria-pressed=true]{color:var(--bone);background:rgba(255,255,255,.08)}
+h1{font:400 clamp(30px,4.6vw,52px)/1.05 var(--display);letter-spacing:.06em;margin:8px 0 6px}
+h1 span{color:var(--red)}
+.lede{margin:0;color:#d4c8c4;max-width:44em}
+.load{display:flex;flex-direction:column;align-items:flex-start;gap:6px;width:360px}
+.btn{display:inline-block;font:600 15px var(--body);color:var(--bone);background:var(--red);border-radius:999px;padding:10px 20px;cursor:pointer;white-space:nowrap}
+.btn:hover{background:#e04e4c}
+.btn input{position:absolute;opacity:0;width:1px;height:1px}
+.path{font-size:13px;color:var(--dim);margin:0}
+.path code{font:13px var(--body);color:var(--bone);background:var(--ink);padding:1px 6px;border-radius:3px;word-break:break-all}
+.path button{font:inherit;background:none;border:0;color:var(--gold);text-decoration:underline;cursor:pointer;padding:0 2px}
+#err{color:var(--red);font-size:14px;min-height:1.2em}
+
+.tabs{max-width:1400px;margin:0 auto 14px;padding:0 16px;display:flex;gap:4px}
+.tabs button{font:500 16px var(--body);color:var(--dim);background:none;border:0;border-bottom:2px solid transparent;padding:6px 14px;cursor:pointer}
+.tabs button[aria-selected=true]{color:var(--bone);border-bottom-color:var(--red)}
+.app[hidden],.journal[hidden]{display:none}
+
+.app{max-width:1400px;margin:0 auto;padding:0 16px 48px;display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:16px}
+#map{height:min(78vh,860px);border-radius:10px;background:var(--abyss);border:1px solid var(--line)}
+.leaflet-container{font:14px var(--body)}
+.leaflet-image-layer{filter:brightness(1.25)}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--ink);color:var(--bone);box-shadow:0 4px 18px rgba(0,0,0,.6)}
+.leaflet-popup-content{margin:12px 14px}
+.leaflet-popup-content h4{font:600 16px var(--body);margin:0 0 2px}
+.leaflet-popup-content p{margin:4px 0 0;color:var(--dim)}
+.leaflet-container a.leaflet-popup-close-button{color:var(--dim)}
+.leaflet-bar a{background:var(--ink);color:var(--bone);border-color:var(--line)}
+.leaflet-tooltip{background:var(--ink);color:var(--bone);border-color:var(--line)}
+.pin.miss{filter:drop-shadow(0 0 4px rgba(214,64,63,.95))}
+.pin.got{opacity:.35;filter:grayscale(1)}
+
+aside{background:var(--deep);border:1px solid var(--line);border-radius:10px;height:min(78vh,860px);display:flex;flex-direction:column;overflow:hidden}
+.summary{padding:14px 16px;border-bottom:1px solid var(--line)}
+.summary h2{font:500 20px var(--body);margin:0}
+.summary label{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--dim);margin-top:8px;cursor:pointer}
+.summary p{font-size:13px;color:var(--dim);margin:6px 0 0}
+.cats{overflow:auto;padding:6px 0}
+.cat{border-bottom:1px solid rgba(61,38,44,.7)}
+.cat summary{list-style:none;display:grid;grid-template-columns:20px 24px 1fr auto;gap:8px;align-items:center;padding:8px 16px;cursor:pointer}
+.cat summary::-webkit-details-marker{display:none}
+.cat summary input{accent-color:var(--red);margin:0}
+.cat summary input:disabled{opacity:.25}
+.cat summary img{width:24px;height:24px;object-fit:contain}
+.cat .n{color:var(--dim);font-size:14px;font-variant-numeric:tabular-nums}
+.cat.done .n{color:var(--gold)}
+.cat .bar{grid-column:3/-1;height:2px;background:var(--line)}
+.cat .bar i{display:block;height:100%;background:var(--red)}
+.cat.done .bar i{background:var(--gold)}
+.cat ul{list-style:none;margin:0;padding:0 16px 10px 60px}
+.cat li{font-size:14px;padding:2px 0}
+.cat li button{font:inherit;color:var(--bone);background:none;border:0;padding:0;cursor:pointer;text-align:left}
+.cat li button:hover{color:var(--gold)}
+.cat li .det{display:block;color:var(--dim);font-size:13px}
+.cat li a{color:var(--gold);font-size:13px}
+.cat .area{font-size:12px;color:var(--dim);margin:8px 0 2px;font-style:italic}
+
+.journal{max-width:1400px;margin:0 auto;padding:0 16px 48px}
+.jhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:16px}
+.jhead h2{font:500 20px var(--body);margin:0}
+.jhead p{margin:4px 0 0;color:var(--dim);font-size:14px}
+.filters{display:flex;gap:4px}
+.filters button{font:500 14px var(--body);color:var(--dim);background:var(--deep);border:1px solid var(--line);border-radius:999px;padding:5px 12px;cursor:pointer}
+.filters button[aria-pressed=true]{color:var(--abyss);background:var(--bone);border-color:var(--bone)}
+.beasts{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.beast{background:var(--deep);border:1px solid var(--line);border-radius:8px;padding:10px;display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center}
+.beast .face{width:64px;height:64px;background-repeat:no-repeat;background-position:center;background-size:contain}
+.beast.unseen .face{filter:brightness(0) drop-shadow(0 0 1px rgba(239,230,220,.5))}
+.beast.done{border-color:rgba(227,194,124,.4)}
+.beast h3{font:500 15px/1.2 var(--body);margin:0}
+.beast p{margin:2px 0 0;font-size:13px;color:var(--dim)}
+.beast .st{color:var(--red)}
+.beast.done .st{color:var(--gold)}
+.beast a{color:var(--dim)}
+.beast .kbar{height:2px;background:var(--line);margin-top:6px}
+.beast .kbar i{display:block;height:100%;background:var(--red)}
+footer{max-width:1400px;margin:0 auto;padding:0 16px 32px;font-size:13px;color:var(--dim)}
+
+@media (max-width:900px){
+  header{grid-template-columns:1fr}
+  .load{width:auto}
+  .app{grid-template-columns:1fr}
+  #map{height:62vh}
+  aside{height:auto}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <a class="back" href="../" data-i18n="back">All games</a>
+    <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="it">IT</button><button type="button" data-lang="en">EN</button></div>
+  </div>
+  <div>
+    <h1>Hollow Knight <span>Silksong</span></h1>
+    <p class="lede" data-i18n="lede"></p>
+  </div>
+  <div class="load">
+    <label class="btn"><input type="file" id="file" accept=".dat"><span data-i18n="load"></span></label>
+    <p class="path"><span data-i18n="pathA"></span> <code id="p">%USERPROFILE%\AppData\LocalLow\Team Cherry\Hollow Knight Silksong</code><button id="cp" type="button" data-i18n="copy"></button><br><span data-i18n="pathB"></span></p>
+    <div id="err" role="alert"></div>
+  </div>
+</header>
+
+<nav class="tabs" role="tablist">
+  <button type="button" role="tab" data-tab="map" aria-selected="true" data-i18n="tabMap"></button>
+  <button type="button" role="tab" data-tab="journal" aria-selected="false" data-i18n="tabJournal"></button>
+</nav>
+
+<main class="app" id="tab-map">
+  <div id="map"></div>
+  <aside>
+    <div class="summary">
+      <h2 id="total"></h2>
+      <label><input type="checkbox" id="showGot"> <span data-i18n="showGot"></span></label>
+      <p data-i18n="approx"></p>
+    </div>
+    <div class="cats" id="cats"></div>
+  </aside>
+</main>
+
+<section class="journal" id="tab-journal" hidden>
+  <div class="jhead">
+    <div><h2 id="jtotal"></h2><p data-i18n="jHint"></p></div>
+    <div class="filters" role="group">
+      <button type="button" data-f="all" aria-pressed="true" data-i18n="fAll"></button>
+      <button type="button" data-f="todo" aria-pressed="false" data-i18n="fTodo"></button>
+      <button type="button" data-f="done" aria-pressed="false" data-i18n="fDone"></button>
+    </div>
+  </div>
+  <ul class="beasts" id="beasts"></ul>
+</section>
+
+<footer data-i18n="footer"></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/aes-js/3.1.2/index.min.js"></script>
+<script src="../i18n.js"></script>
+<script src="data.js"></script>
+<script>
+const STRINGS = {
+  it: {
+    back: "Tutti i giochi", load: "Carica user1.dat",
+    lede: "Carica il salvataggio e vedi sulla mappa cosa ti manca: frammenti, pulci, rosari, segreti e altro, più il Diario del Cacciatore. Il file resta sul tuo computer.",
+    pathA: "Salvataggi in", copy: "copia", copied: "copiato", pathB: "dentro la cartella con il tuo ID Steam.",
+    showGot: "Mostra anche quelli già presi",
+    approx: "I nomi di oggetti e luoghi sono in inglese. Le voci senza icona sulla mappa hanno il link a MapGenie.",
+    footer: 'Elenco oggetti e regole del salvataggio da <a href="https://github.com/Br3zzly/silksong-completionist">silksong-completionist</a> (MIT). Mappa, posizioni e ritratti dai file del gioco di Team Cherry. Progetto amatoriale, non affiliato con Team Cherry.',
+    notSave: "Questo file non è un salvataggio di Silksong. Scegli user1.dat (o user2-4.dat) dalla cartella dei salvataggi.",
+    total: n => `${n} voci`, found: (g, n) => `${g} di ${n} trovati`, mapgenie: "Apri su MapGenie",
+    tabMap: "Mappa", tabJournal: "Diario del Cacciatore",
+    jHint: "Le voci mai incontrate sono in silhouette. Il numero è quante uccisioni mancano per completare la voce.",
+    fAll: "Tutte", fTodo: "Da completare", fDone: "Complete",
+    jTotal: (seen, done, n) => `${seen} di ${n} incontrati, ${done} completati`, jTotalNoSave: n => `${n} voci`,
+    unseen: "Mai incontrato", left: n => `${n === 1 ? "Manca 1 uccisione" : `Mancano ${n} uccisioni`}`, complete: "Completo",
+    needs: n => n > 1 ? `${n} uccisioni` : "1 uccisione",
+  },
+  en: {
+    back: "All games", load: "Load user1.dat",
+    lede: "Load your save and see on the map what you're missing: shards, fleas, rosaries, secrets and more, plus the Hunter's Journal. The file stays on your computer.",
+    pathA: "Saves are in", copy: "copy", copied: "copied", pathB: "inside the folder named with your Steam ID.",
+    showGot: "Also show collected",
+    approx: "Items without an icon on the map link to MapGenie instead.",
+    footer: 'Item list and save rules from <a href="https://github.com/Br3zzly/silksong-completionist">silksong-completionist</a> (MIT). Map, positions and portraits from Team Cherry\'s game files. Fan project, not affiliated with Team Cherry.',
+    notSave: "This isn't a Silksong save. Pick user1.dat (or user2-4.dat) from the saves folder.",
+    total: n => `${n} items`, found: (g, n) => `${g} of ${n} found`, mapgenie: "Open on MapGenie",
+    tabMap: "Map", tabJournal: "Hunter's Journal",
+    jHint: "Entries you've never met are shown as silhouettes. The number is how many kills are left to complete the entry.",
+    fAll: "All", fTodo: "To complete", fDone: "Complete",
+    jTotal: (seen, done, n) => `${seen} of ${n} encountered, ${done} completed`, jTotalNoSave: n => `${n} entries`,
+    unseen: "Never encountered", left: n => `${n} kill${n === 1 ? "" : "s"} left`, complete: "Complete",
+    needs: n => `${n} kill${n === 1 ? "" : "s"}`,
+  },
+};
+// Category labels [it, en] in sidebar order; categories with map pins first.
+const GROUPS = {
+  "Mask Shards": ["Frammenti di maschera", "Mask shards"], "Spool Fragments": ["Frammenti di spola", "Spool fragments"],
+  "Lost Fleas": ["Pulci perdute", "Lost fleas"], "Memory Lockets": ["Medaglioni della memoria", "Memory lockets"],
+  "Craftmetals": ["Craftmetal", "Craftmetals"], "Mossberries": ["Bacche di muschio", "Mossberries"], "Pale Oil": ["Olio pallido", "Pale oil"],
+  "Silkeaters": ["Mangiaseta", "Silkeaters"], "Keys": ["Chiavi", "Keys"], "Upgrades": ["Potenziamenti", "Upgrades"],
+  "Caches & Secrets": ["Scorte e segreti", "Caches & secrets"], "Unique Spawns": ["Nemici unici", "Unique spawns"],
+  "Abilities": ["Abilità", "Abilities"], "Tools": ["Strumenti", "Tools"], "Crests": ["Creste", "Crests"], "Relics": ["Reliquie", "Relics"],
+  "Materium": ["Materium", "Materium"], "Mementos": ["Memento", "Mementos"], "Bellhome": ["Casa campana", "Bellhome"],
+  "Mapping Supplies": ["Forniture per mappe", "Mapping supplies"], "Bellways": ["Campanovie", "Bellways"],
+  "Ventrica Stations": ["Stazioni Ventrica", "Ventrica stations"], "Tasks": ["Desideri", "Wishes"], "Bosses": ["Boss", "Bosses"],
+  "Stats": ["Statistiche", "Stats"],
+};
+const PIN_OF = { "Mask Shards": "mask", "Spool Fragments": "spool", "Lost Fleas": "flea", "Memory Lockets": "locket", "Craftmetals": "metal",
+  "Mossberries": "berry", "Pale Oil": "core", "Silkeaters": "silkeater", "Keys": "key", "Upgrades": "core", "Caches & Secrets": "rosary",
+  "Unique Spawns": "void", "Bellways": "token" };
+const HIDDEN_BY_DEFAULT = new Set(["Caches & Secrets", "Unique Spawns"]);
+const t = I18N.t;
+const gname = g => (GROUPS[g] || [g, g])[I18N.lang === "en" ? 1 : 0];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+// Same container as Hollow Knight: .NET string record holding base64 of AES-256-ECB(JSON).
+const KEY = new TextEncoder().encode("UKu52ePUBwetZ9wNX88o54dnfKRu0T1l");
+function parseSave(buf) {
+  const b = new Uint8Array(buf);
+  if (b[0] === 0x7b) return JSON.parse(new TextDecoder().decode(b));
+  if (b[17] !== 6) throw new Error(t("notSave"));
+  let p = 22, len = 0, shift = 0, x;
+  do { x = b[p++]; len |= (x & 127) << shift; shift += 7; } while (x & 128);
+  const cipher = Uint8Array.from(atob(new TextDecoder("latin1").decode(b.subarray(p, p + len))), c => c.charCodeAt(0));
+  const plain = new aesjs.ModeOfOperation.ecb(KEY).decrypt(cipher);
+  return JSON.parse(new TextDecoder().decode(plain.subarray(0, plain.length - plain[plain.length - 1])));
+}
+
+// Port of silksong-completionist's createSaveParser (MIT).
+function checker(save) {
+  const pd = save.playerData, sd = save.sceneData || {};
+  const first = (list, key) => { const m = new Map(); for (const e of list || []) if (!m.has(key(e))) m.set(key(e), e); return m; };
+  const coll = name => first(pd[name]?.savedData, e => e.Name);
+  const C = {};
+  const data = (c, n) => (C[c] ??= coll(c)).get(n)?.Data;
+  const journal = first(pd.EnemyJournalKillData?.list, e => e.Name);
+  const visited = new Set(pd.scenesVisited || []);
+  const deposits = new Set((pd.MementosDeposited?.savedData || []).filter(e => e.Data?.IsDeposited).map(e => e.Name));
+  const scene = {};
+  for (const n of ["persistentBools", "persistentInts", "geoRocks"]) scene[n] = first(sd[n]?.serializedList, e => e.SceneName + "|" + e.ID);
+  const sv = (c, id) => scene[c].get(id[0] + "|" + id[1])?.Value;
+  const has = info => {
+    if (Array.isArray(info)) return info.some(has);
+    const id = info.internalId;
+    switch (info.type) {
+      case "flag": case "flagReturn": case "quill": return !!pd[id];
+      case "flagAnyOf": return id.some(n => !!pd[n]);
+      case "flagMin": return typeof pd[id[0]] === "number" && pd[id[0]] >= id[1];
+      case "tool": return id.some(n => !!data("Tools", n)?.IsUnlocked);
+      case "journal": return !!journal.get(id) && journal.get(id).Record.Kills >= 0;
+      case "crest": return !!data("ToolEquips", id)?.IsUnlocked;
+      case "collectable": return (data("Collectables", id)?.Amount || 0) > 0;
+      case "relic": return !!data("Relics", id)?.IsCollected;
+      case "materium": { const e = data("MateriumCollected", id); return !!pd.ConstructedMaterium && !!(e?.IsCollected || e?.HasSeenInRelicBoard); }
+      case "quest": return !!data("QuestCompletionData", id)?.IsCompleted;
+      case "sceneDataBool": return !!sv("persistentBools", id);
+      case "sceneDataInt": return sv("persistentInts", id) === id[2];
+      case "sceneDataIntRosaries": return sv("persistentInts", id) === -1;
+      case "sceneDataIntShards": return !sv("persistentInts", id);
+      case "sceneDataGeo": return !sv("geoRocks", id);
+      case "sceneVisited": return visited.has(id);
+      case "mementoDeposit": return deposits.has(id);
+    }
+    return false;
+  };
+  const kills = jid => journal.get(jid)?.Record.Kills;
+  const steelSoul = pd.permadeathMode !== 0;
+  return { has, kills, inMode: it => !((it.ss && !steelSoul) || (it.cl && steelSoul)) };
+}
+
+let chk = null, got = null, filter = "all";
+const shown = new Set(Object.keys(GROUPS).filter(g => !HIDDEN_BY_DEFAULT.has(g)));
+const open = new Set();
+const items = () => SS.items.map((it, i) => [it, i]).filter(([it]) => !chk || chk.inMode(it));
+
+const [W, H] = SS.size;
+const map = L.map("map", { crs: L.CRS.Simple, minZoom: -3, maxZoom: 1, zoomSnap: 0.25, attributionControl: false });
+const bounds = [[-H, 0], [0, W]];
+L.imageOverlay("map.webp", bounds).addTo(map);
+map.fitBounds(bounds);
+map.setMaxBounds(L.latLngBounds(bounds).pad(0.2));
+const icons = {};
+const pinIcon = (k, state) => icons[k + state] ??= L.icon({ iconUrl: `pins/${k}.png`, iconSize: [30, 30], className: `pin ${state}` });
+const markers = SS.items.map(it => it.p && L.marker([-it.p[1], it.p[0]], { icon: pinIcon(it.i, "") }));
+const layer = L.layerGroup().addTo(map);
+
+function popup(it) {
+  return `<h4>${esc(it.n)}</h4><p>${esc(gname(it.c))}${it.s ? `, ${esc(it.s)}` : ""}${it.r ? ` (${esc(it.r)})` : ""}</p>
+    ${it.d ? `<p>${esc(it.d)}</p>` : ""}${it.m ? `<p><a href="${esc(it.m)}" target="_blank" rel="noopener">${t("mapgenie")}</a></p>` : ""}`;
+}
+
+function drawMap() {
+  layer.clearLayers();
+  const showGot = document.getElementById("showGot").checked;
+  for (const [it, i] of items()) {
+    if (!markers[i] || !shown.has(it.c)) continue;
+    const done = got && got[i];
+    if (done && !showGot) continue;
+    const m = markers[i];
+    m.setIcon(pinIcon(it.i, done ? "got" : got ? "miss" : ""));
+    m.setZIndexOffset(done ? -1000 : 0);
+    m.unbindTooltip().bindTooltip(it.n, { direction: "top", offset: [0, -14] });
+    m.unbindPopup().bindPopup(() => popup(it));
+    m.addTo(layer);
+  }
+}
+
+function drawList() {
+  const showGot = document.getElementById("showGot").checked;
+  const all = items();
+  document.getElementById("cats").innerHTML = Object.keys(GROUPS).map(g => {
+    const rows = all.filter(([it]) => it.c === g);
+    if (!rows.length) return "";
+    const n = got ? rows.filter(([, i]) => got[i]).length : 0;
+    const pinned = rows.some(([it]) => it.p);
+    const list = rows.filter(([, i]) => showGot || !got || !got[i]);
+    const areas = {};
+    for (const [it, i] of list) (areas[it.r || it.s || ""] ??= []).push([it, i]);
+    const body = Object.entries(areas).map(([a, rs]) => `${a ? `<div class="area">${esc(a)}</div>` : ""}${rs.map(([it, i]) =>
+      `<li>${it.p ? `<button type="button" data-i="${i}">${esc(it.n)}</button>` : esc(it.n)}${!it.p && it.d ? `<span class="det">${esc(it.d)}</span>` : ""}${!it.p && it.m ? ` <a href="${esc(it.m)}" target="_blank" rel="noopener">${t("mapgenie")}</a>` : ""}</li>`).join("")}`).join("");
+    return `<details class="cat${got && n === rows.length ? " done" : ""}" data-g="${esc(g)}"${open.has(g) ? " open" : ""}>
+      <summary><input type="checkbox" data-g="${esc(g)}" ${shown.has(g) ? "checked" : ""} ${pinned ? "" : "disabled"} aria-label="${esc(gname(g))}">${PIN_OF[g] ? `<img src="pins/${PIN_OF[g]}.png" alt="">` : "<span></span>"}
+        <span>${esc(gname(g))}</span><span class="n">${got ? `${n} / ` : ""}${rows.length}</span>
+        ${got ? `<span class="bar"><i style="width:${100 * n / rows.length}%"></i></span>` : ""}</summary>
+      <ul>${body}</ul></details>`;
+  }).join("");
+  const total = all.length, n = got ? all.filter(([, i]) => got[i]).length : 0;
+  document.getElementById("total").textContent = got ? t("found", n, total) : t("total", total);
+}
+
+function drawJournal() {
+  const stat = e => {
+    if (!chk) return { cls: "", text: t("needs", e.k) };
+    const k = chk.kills(e.id);
+    if (k === undefined) return { cls: "unseen", text: t("unseen") };
+    return k >= e.k ? { cls: "done", text: t("complete") } : { cls: "", text: t("left", e.k - k), pct: 100 * k / e.k };
+  };
+  const rows = SS.journal.map(e => [e, stat(e)]);
+  const seen = rows.filter(([, s]) => s.cls !== "unseen").length, done = rows.filter(([, s]) => s.cls === "done").length;
+  document.getElementById("jtotal").textContent = chk ? t("jTotal", seen, done, rows.length) : t("jTotalNoSave", rows.length);
+  const size = SS.cols * SS.cell * 64 / SS.cell;
+  document.getElementById("beasts").innerHTML = rows
+    .filter(([, s]) => filter === "all" || !chk || (filter === "done") === (s.cls === "done"))
+    .map(([e, s]) => {
+      const face = e.img ? `background-image:url(${esc(e.img)})`
+        : `background-image:url(bestiary.webp);background-size:${size}px auto;background-position:-${(e.i % SS.cols) * 64}px -${Math.floor(e.i / SS.cols) * 64}px`;
+      return `<li class="beast ${s.cls}"><div class="face" style="${face}" role="img" aria-label="${esc(e.n)}"></div>
+        <div><h3>${esc(e.n)}</h3><p class="st">${esc(s.text)}</p>
+          ${e.m ? `<p><a href="${esc(e.m)}" target="_blank" rel="noopener">${t("mapgenie")}</a></p>` : ""}
+          ${s.pct !== undefined ? `<div class="kbar"><i style="width:${s.pct}%"></i></div>` : ""}</div></li>`;
+    }).join("");
+}
+
+function render() { drawMap(); drawList(); drawJournal(); }
+
+document.getElementById("cats").addEventListener("click", e => {
+  const box = e.target.closest("input[data-g]");
+  if (box) {
+    e.stopPropagation();
+    box.checked ? shown.add(box.dataset.g) : shown.delete(box.dataset.g);
+    drawMap();
+    return;
+  }
+  const btn = e.target.closest("button[data-i]");
+  if (btn) {
+    const i = +btn.dataset.i, it = SS.items[i];
+    shown.add(it.c);
+    drawMap();
+    map.flyTo([-it.p[1], it.p[0]], 0.5, { duration: .6 });
+    markers[i].openPopup();
+    document.getElementById("map").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+});
+document.getElementById("cats").addEventListener("toggle", e => {
+  const g = e.target.dataset.g;
+  if (g) e.target.open ? open.add(g) : open.delete(g);
+}, true);
+document.getElementById("showGot").onchange = render;
+document.querySelector(".tabs").addEventListener("click", e => {
+  const b = e.target.closest("[data-tab]");
+  if (!b) return;
+  document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-selected", x === b));
+  document.getElementById("tab-map").hidden = b.dataset.tab !== "map";
+  document.getElementById("tab-journal").hidden = b.dataset.tab !== "journal";
+  if (b.dataset.tab === "map") map.invalidateSize();
+});
+document.querySelector(".filters").addEventListener("click", e => {
+  const b = e.target.closest("[data-f]");
+  if (!b) return;
+  filter = b.dataset.f;
+  document.querySelectorAll(".filters button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  drawJournal();
+});
+
+async function load(file) {
+  const err = document.getElementById("err");
+  err.textContent = "";
+  try {
+    chk = checker(parseSave(await file.arrayBuffer()));
+    got = SS.items.map(it => chk.has(it.t));
+    render();
+  } catch (e) {
+    err.textContent = e instanceof SyntaxError || e instanceof TypeError ? t("notSave") : e.message;
+  }
+}
+document.getElementById("file").onchange = e => e.target.files[0] && load(e.target.files[0]);
+document.addEventListener("dragover", e => e.preventDefault());
+document.addEventListener("drop", e => { e.preventDefault(); e.dataTransfer.files[0] && load(e.dataTransfer.files[0]); });
+document.getElementById("cp").onclick = e => {
+  navigator.clipboard?.writeText(document.getElementById("p").textContent);
+  e.target.textContent = t("copied");
+};
+I18N.init(STRINGS, () => { document.getElementById("err").textContent = ""; render(); });
+</script>
+</body>
+</html>
