@@ -12,6 +12,18 @@ gen = TypeTreeGenerator(env.objects[0].assets_file.unity_version)
 gen.load_local_game(GAME)
 env.typetree_generator = gen
 
+
+def full_image(sp):
+    """Sprite pixels at full rect size: atlas sprites come back trimmed, so put them back at their offset."""
+    im = sp.image.convert("RGBA")
+    rw, rh = round(sp.m_Rect.width), round(sp.m_Rect.height)
+    if im.size == (rw, rh):
+        return im
+    off = sp.m_RD.textureRectOffset
+    out = Image.new("RGBA", (rw, rh), (0, 0, 0, 0))
+    out.paste(im, (round(off.x), rh - round(off.y) - im.height))
+    return out
+
 def sheet(lang, name):
     o = next(o for o in env.objects if o.type.name == "TextAsset" and o.peek_name() == f"{lang}_{name}")
     s = o.read().m_Script
@@ -99,7 +111,7 @@ Y = lambda y: round((maxy - y) * SCALE, 1)
 canvas = Image.new("RGBA", (W, H), (0, 0, 0, 0))
 rooms, area_pts = {}, {}
 for (scene, x, y, sp, area, col), (x0, y0, x1, y1, w, h) in zip(placed, boxes):
-    img = sp.image.convert("RGBA").resize((max(1, round((x1 - x0) * SCALE)), max(1, round((y1 - y0) * SCALE))), Image.LANCZOS)
+    img = full_image(sp).resize((max(1, round((x1 - x0) * SCALE)), max(1, round((y1 - y0) * SCALE))), Image.LANCZOS)
     r, g, b, a = img.split()
     img = Image.merge("RGBA", (r.point(lambda v: v * col[0]), g.point(lambda v: v * col[1]), b.point(lambda v: v * col[2]), a))
     canvas.alpha_composite(img, (round((x0 - minx) * SCALE), round((maxy - y1) * SCALE)))

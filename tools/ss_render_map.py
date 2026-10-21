@@ -12,6 +12,18 @@ files = [AA + r"\maps_assets_all.bundle"] + glob.glob(AA + r"\atlases_assets_ass
 env = UnityPy.load(*files)
 res = UnityPy.load(DATA + r"\resources.assets")
 
+
+def full_image(sp):
+    """Sprite pixels at full rect size: atlas sprites come back trimmed, so put them back at their offset."""
+    im = sp.image.convert("RGBA")
+    rw, rh = round(sp.m_Rect.width), round(sp.m_Rect.height)
+    if im.size == (rw, rh):
+        return im
+    off = sp.m_RD.textureRectOffset
+    out = Image.new("RGBA", (rw, rh), (0, 0, 0, 0))
+    out.paste(im, (round(off.x), rh - round(off.y) - im.height))
+    return out
+
 def sheet(lang, name):
     o = next(o for o in res.objects if o.type.name == "TextAsset" and o.peek_name() == f"{lang}_{name}")
     s = o.read().m_Script
@@ -90,7 +102,7 @@ Y = lambda v: round((maxy - v) * SCALE, 1)
 canvas = Image.new("RGBA", (W, H), (0, 0, 0, 0))
 rooms = {}
 for (scene, x, y, sp, area, sx, sy, col), (x0, y0, x1, y1, w, h) in zip(placed, boxes):
-    img = sp.image.convert("RGBA")
+    img = full_image(sp)
     if sx < 0: img = img.transpose(Image.FLIP_LEFT_RIGHT)
     if sy < 0: img = img.transpose(Image.FLIP_TOP_BOTTOM)
     img = img.resize((max(1, round((x1 - x0) * SCALE)), max(1, round((y1 - y0) * SCALE))), Image.LANCZOS)
