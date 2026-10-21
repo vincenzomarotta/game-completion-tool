@@ -7,7 +7,7 @@
 <meta name="description" content="Carica il salvataggio del tuo gioco e scopri cosa ti manca per il 100% e dove trovarlo.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Alegreya+Sans:wght@400;500&family=IM+Fell+English&family=Cinzel&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Alegreya+Sans:wght@400;500&family=IM+Fell+English&family=Cinzel&family=Cormorant+Garamond:wght@700&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#1e2029; --ink:#ecebe6; --dim:#9a9caa; --rule:#343744;
@@ -43,6 +43,11 @@ h2{font:500 15px var(--body);color:var(--dim);margin:0 0 16px}
 .hk:hover{border-color:#f4f1e8}
 .hk h3{font:400 26px/1.05 "Cinzel",Georgia,serif;letter-spacing:.05em}
 .hk .tracks{color:#8a93a6}
+
+.tunic{background:#ece2c6;color:#1d4a55;border:1px solid #c9b98f;transition:box-shadow .2s}
+.tunic:hover{box-shadow:4px 4px 0 #c9962e}
+.tunic h3{font:700 34px/1 "Cormorant Garamond",Georgia,serif}
+.tunic .tracks{color:#4f6f74}
 
 .soon{border:1.5px dashed var(--rule);color:var(--dim)}
 .soon h3{font:500 22px var(--display);color:var(--ink)}
@@ -88,6 +93,19 @@ footer a{color:var(--dim)}
     </div>
   </a>
 
+  <a class="game tunic" href="tunic/">
+    <svg viewBox="0 0 100 100" aria-hidden="true">
+      <path d="M14 10 40 38H60L86 10 82 52C80 70 66 84 50 92 34 84 20 70 18 52Z" fill="#e0662a"/>
+      <path d="M50 92C42 84 36 76 34 66L50 72 66 66C64 76 58 84 50 92Z" fill="#f7efe0"/>
+      <circle cx="38" cy="54" r="4" fill="#1d4a55"/><circle cx="62" cy="54" r="4" fill="#1d4a55"/>
+    </svg>
+    <div>
+      <h3>Tunic</h3>
+      <p data-i18n="tuWhat"></p>
+      <p class="tracks" data-i18n="tuCount"></p>
+    </div>
+  </a>
+
   <div class="game soon">
     <span class="slot" aria-hidden="true"></span>
     <div>
@@ -107,6 +125,7 @@ I18N.init({
     lede: "Carica il salvataggio, scopri cosa ti manca per il 100% e in quale zona andarlo a cercare. Il file non lascia mai il tuo computer.",
     games: "Giochi", ddWhat: "Oggetti luccicanti, semi, vasi, santuari, sfere d'anima, tavolette.", ddCount: "224 cose da trovare",
     hkWhat: "Larve, frammenti, amuleti, radici, reliquie, negozi.", hkCount: "556 cose da trovare, con mappa interattiva",
+    tuWhat: "Forzieri, pagine del manuale, fate, segreti, reliquie.", tuCount: "302 cose da trovare, con mini-mappe",
     next: "Prossimo gioco", wip: "In lavorazione.",
     footer: `Progetto amatoriale, non affiliato con gli sviluppatori dei giochi. Codice su ${GH}.`,
   },
@@ -114,6 +133,7 @@ I18N.init({
     lede: "Load your save, see what's left for 100% and which area to look in. The file never leaves your computer.",
     games: "Games", ddWhat: "Shiny things, seeds, pots, shrines, soul orbs, tablets.", ddCount: "224 things to find",
     hkWhat: "Grubs, shards, charms, roots, relics, shops.", hkCount: "556 things to find, with an interactive map",
+    tuWhat: "Chests, manual pages, fairies, secrets, relics.", tuCount: "302 things to find, with mini maps",
     next: "Next game", wip: "In the works.",
     footer: `Fan project, not affiliated with the games' developers. Code on ${GH}.`,
   },

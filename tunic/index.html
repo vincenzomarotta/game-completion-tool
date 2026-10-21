@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tunic Completionist</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Alegreya+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#ece2c6; --leaf:#e4d7b4; --ink:#1d4a55; --ink-soft:#4f6f74; --rule:#c9b98f;
+  --fox:#e0662a; --gold:#c9962e; --got:#8aa3a3;
+  --display:"Cormorant Garamond",Georgia,serif; --body:"Alegreya Sans",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.5 var(--body)}
+main{max-width:1120px;margin:0 auto;padding:20px 16px 72px}
+:focus-visible{outline:2px solid var(--fox);outline-offset:2px}
+a{color:inherit}
+.top{display:flex;justify-content:space-between;align-items:center}
+.back{color:var(--ink-soft);font-size:15px;text-underline-offset:3px}
+.lang{display:flex;gap:2px}
+.lang button{font:500 14px var(--body);color:var(--ink-soft);background:none;border:0;padding:4px 8px;cursor:pointer;border-radius:4px}
+.lang button[aria-pressed=true]{color:var(--paper);background:var(--ink)}
+
+.hero{display:grid;grid-template-columns:1fr auto;gap:16px 40px;align-items:end;margin:28px 0 8px;padding-bottom:24px;border-bottom:2px solid var(--ink)}
+h1{font:700 clamp(48px,8vw,92px)/.9 var(--display);margin:0;letter-spacing:.01em}
+.lede{margin:12px 0 0;max-width:36em;color:var(--ink-soft)}
+.load{width:330px}
+.btn{display:inline-block;font:700 16px var(--body);color:var(--paper);background:var(--ink);border-radius:4px;padding:11px 20px;cursor:pointer;box-shadow:3px 3px 0 var(--gold)}
+.btn:hover{background:#163a43}
+.btn input{position:absolute;opacity:0;width:1px;height:1px}
+.path{font-size:14px;color:var(--ink-soft);margin:12px 0 0}
+.path code{font:13px var(--body);color:var(--ink);background:var(--leaf);padding:1px 6px;border-radius:3px;word-break:break-all}
+.path button{font:inherit;background:none;border:0;color:var(--fox);text-decoration:underline;cursor:pointer;padding:0 2px}
+#err{color:#b2401a;font-size:15px;min-height:1.2em;margin-top:6px}
+
+.controls{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:12px;margin:24px 0 8px}
+#total{font:700 30px var(--display);margin:0}
+.toggle{font-size:15px;color:var(--ink-soft);display:flex;gap:8px;align-items:center;cursor:pointer}
+.toggle input{accent-color:var(--fox)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 28px}
+.chip{font:500 14px var(--body);color:var(--ink);background:transparent;border:1.5px solid var(--ink);border-radius:999px;padding:5px 12px;cursor:pointer}
+.chip[aria-pressed=false]{opacity:.45;border-style:dashed}
+.chip b{font-weight:700}
+.chip.done{background:var(--ink);color:var(--paper)}
+
+.regions{display:grid;grid-template-columns:repeat(auto-fill,minmax(480px,1fr));gap:20px}
+.region{background:var(--leaf);border:1px solid var(--rule);border-radius:6px;padding:16px 18px;display:grid;grid-template-columns:150px 1fr;gap:16px;align-items:start}
+.region.big{grid-column:1/-1;grid-template-columns:minmax(260px,420px) 1fr}
+.region.nomap{grid-template-columns:1fr}
+.region h2{grid-column:1/-1;font:700 26px/1 var(--display);margin:0;display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.region h2 .n{font:500 15px var(--body);color:var(--ink-soft);white-space:nowrap}
+.region.done h2 .n{color:var(--gold)}
+.mini{width:100%;height:auto;background:var(--paper);border:1px solid var(--rule);border-radius:4px}
+.mini .grid{stroke:var(--rule);stroke-width:1}
+.mini circle{stroke:var(--paper);stroke-width:1.5;transition:r .15s}
+.mini circle.miss{fill:var(--fox)}
+.mini circle.got{fill:var(--got)}
+.mini circle.todo{fill:var(--ink)}
+.mini circle.hl{r:9;stroke:var(--ink);stroke-width:2.5}
+.mini text{font:600 13px var(--body);fill:var(--ink-soft)}
+.region ul{list-style:none;margin:0;padding:0;columns:1}
+.region.big ul{columns:2 240px;column-gap:24px}
+.region li{padding:3px 0 3px 18px;position:relative;font-size:15px;break-inside:avoid;cursor:default}
+.region li::before{content:"";position:absolute;left:2px;top:.72em;width:8px;height:8px;border-radius:50%;background:var(--fox)}
+.region li.got{color:var(--got)}
+.region li.got::before{background:var(--got)}
+.region li.todo::before{background:var(--ink)}
+.region li.hand::before{background:transparent;border:1.5px dashed var(--ink-soft)}
+.region li small{color:var(--ink-soft);font-size:13px}
+.region li:hover{color:var(--fox)}
+.region .note{font-size:14px;color:var(--ink-soft);margin:0}
+footer{margin-top:56px;font-size:14px;color:var(--ink-soft);border-top:1px solid var(--rule);padding-top:14px}
+
+@media (max-width:720px){
+  .hero{grid-template-columns:1fr}
+  .load{width:auto}
+  .regions{grid-template-columns:1fr}
+  .region,.region.big{grid-template-columns:1fr}
+  .mini{max-width:320px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <a class="back" href="../" data-i18n="back">Tutti i giochi</a>
+    <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="it">IT</button><button type="button" data-lang="en">EN</button></div>
+  </div>
+
+  <section class="hero">
+    <div>
+      <h1>Tunic</h1>
+      <p class="lede" data-i18n="lede"></p>
+    </div>
+    <div class="load">
+      <label class="btn"><input type="file" id="file" accept=".tunic"><span data-i18n="load"></span></label>
+      <p class="path"><span data-i18n="pathA"></span> <code id="p">%USERPROFILE%\AppData\LocalLow\Andrew Shouldice\Secret Legend\SAVES</code><button id="cp" type="button" data-i18n="copy"></button><br><span data-i18n="pathB"></span></p>
+      <div id="err" role="alert"></div>
+    </div>
+  </section>
+
+  <div class="controls">
+    <h2 id="total"></h2>
+    <label class="toggle"><input type="checkbox" id="showGot"> <span data-i18n="showGot"></span></label>
+  </div>
+  <div class="chips" id="chips"></div>
+  <div class="regions" id="regions"></div>
+
+  <footer data-i18n="footer"></footer>
+</main>
+
+<script src="../i18n.js"></script>
+<script src="data.js"></script>
+<script>
+const STRINGS = {
+  it: {
+    back: "Tutti i giochi", load: "Carica il salvataggio",
+    lede: "Carica il salvataggio e scopri quali forzieri, pagine, fate e segreti ti mancano, regione per regione, con una mini-mappa vista dall'alto. Il file resta sul tuo computer.",
+    pathA: "Salvataggi in", copy: "copia", copied: "copiato",
+    pathB: "Scegli il file <b>.tunic</b> più recente (il nome finisce con il numero più alto).",
+    showGot: "Mostra anche quelli già presi",
+    footer: 'Posizioni da <a href="https://github.com/silent-destroyer/tunic-randomizer">TUNIC Randomizer</a> (MIT). Progetto amatoriale, non affiliato con Andrew Shouldice o Finji. La mini-mappa è vista dall\'alto con il nord in alto.',
+    notSave: "Questo file non è un salvataggio di Tunic. Scegli un file .tunic dalla cartella SAVES.",
+    total: n => `${n} posizioni`, found: (g, n) => `${g} di ${n} trovati`, of: "di",
+    hand: "Il gioco non registra questo oggetto in modo leggibile: controlla tu.", allDone: "Completo.",
+    shared: "Questo forziere condivide il salvataggio con quello della Stick House.",
+  },
+  en: {
+    back: "All games", load: "Load your save",
+    lede: "Load your save and see which chests, pages, fairies and secrets you're missing, region by region, with a top-down mini map. The file stays on your computer.",
+    pathA: "Saves are in", copy: "copy", copied: "copied",
+    pathB: "Pick the most recent <b>.tunic</b> file (the name ending in the highest number).",
+    showGot: "Also show collected",
+    footer: 'Locations from <a href="https://github.com/silent-destroyer/tunic-randomizer">TUNIC Randomizer</a> (MIT). Fan project, not affiliated with Andrew Shouldice or Finji. Mini maps are top-down with north up.',
+    notSave: "This isn't a Tunic save. Pick a .tunic file from the SAVES folder.",
+    total: n => `${n} locations`, found: (g, n) => `${g} of ${n} found`, of: "of",
+    hand: "The game doesn't record this one in a readable way: check it yourself.", allDone: "Complete.",
+    shared: "This chest shares its save flag with the Stick House chest.",
+  },
+};
+const GROUPS = {
+  Chests: ["Forzieri", "Chests"], Secrets: ["Forzieri segreti", "Secret chests"], Fairies: ["Fate", "Fairies"],
+  Pages: ["Pagine del manuale", "Manual pages"], KeyItems: ["Oggetti chiave", "Key items"], Relics: ["Reliquie dell'eroe", "Hero relics"],
+  Well: ["Monete nel pozzo", "Coins in the well"], Shop: ["Negozio", "Shop"], Manual: ["Da controllare a mano", "Check by hand"],
+};
+const BIG = new Set(["Overworld", "Quarry", "Swamp", "West Garden", "Ruined Atoll"]);
+const t = I18N.t;
+const gname = g => GROUPS[g][I18N.lang === "en" ? 1 : 0];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+// A .tunic save is plain text, one "key|value" per line.
+function parseSave(text) {
+  const save = new Map();
+  for (const line of text.split(/\r?\n/)) {
+    const i = line.indexOf("|");
+    if (i > 0) save.set(line.slice(0, i), line.slice(i + 1));
+  }
+  if (!save.has("game started") && !save.has("playtime")) throw new Error(t("notSave"));
+  const num = k => { const v = save.get(k); return v === undefined ? 0 : isNaN(+v) ? 1 : +v; };
+  const has = tr => tr[0] === "k" ? num(tr[1]) >= 1 : tr[0] === "n" ? num(tr[1]) >= tr[2] : tr[1].some(has);
+  return has;
+}
+
+let got = null; // array of booleans per location, null before a save is loaded
+const shown = new Set(Object.keys(GROUPS));
+
+function state(i) {
+  const l = TUNIC[i];
+  if (!l.t) return "hand";
+  if (!got) return "todo";
+  return got[i] ? "got" : "miss";
+}
+
+function miniMap(idx) {
+  const pts = idx.filter(i => TUNIC[i].p[0] || TUNIC[i].p[1]);
+  if (pts.length < 3) return "";
+  const xs = pts.map(i => TUNIC[i].p[0]), zs = pts.map(i => TUNIC[i].p[1]);
+  const cx = (Math.min(...xs) + Math.max(...xs)) / 2, cz = (Math.min(...zs) + Math.max(...zs)) / 2;
+  const span = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...zs) - Math.min(...zs), 20) * 1.24;
+  const w = 300, h = 300, S = 300 / span;
+  const X = x => 150 + (x - cx) * S, Y = z => 150 - (z - cz) * S;
+  let grid = "";
+  for (let g = 0; g <= w; g += 50) grid += `<line class="grid" x1="${g}" y1="0" x2="${g}" y2="${h}"/>`;
+  for (let g = 0; g <= h; g += 50) grid += `<line class="grid" x1="0" y1="${g}" x2="${w}" y2="${g}"/>`;
+  const dots = pts.map(i => `<circle class="${state(i)}" data-i="${i}" cx="${X(TUNIC[i].p[0]).toFixed(1)}" cy="${Y(TUNIC[i].p[1]).toFixed(1)}" r="6"><title>${esc(TUNIC[i].n)}</title></circle>`).join("");
+  return `<svg class="mini" viewBox="0 0 ${w.toFixed(0)} ${h.toFixed(0)}" role="img" aria-label="${esc(TUNIC[pts[0]].r)}">${grid}<text x="${(w - 16).toFixed(0)}" y="18">N</text>${dots}</svg>`;
+}
+
+function render() {
+  const showGot = document.getElementById("showGot").checked;
+  const visible = TUNIC.map((l, i) => i).filter(i => shown.has(TUNIC[i].g));
+  const n = got ? got.filter(Boolean).length : 0;
+  document.getElementById("total").textContent = got ? t("found", n, TUNIC.length) : t("total", TUNIC.length);
+
+  document.getElementById("chips").innerHTML = Object.keys(GROUPS).map(g => {
+    const idx = TUNIC.map((l, i) => i).filter(i => TUNIC[i].g === g);
+    const k = got ? idx.filter(i => got[i]).length : 0;
+    const done = got && g !== "Manual" && k === idx.length;
+    return `<button type="button" class="chip${done ? " done" : ""}" data-g="${g}" aria-pressed="${shown.has(g)}">${esc(gname(g))} <b>${got && g !== "Manual" ? `${k}/` : ""}${idx.length}</b></button>`;
+  }).join("");
+
+  const regions = new Map();
+  for (const i of visible) (regions.get(TUNIC[i].r) ?? regions.set(TUNIC[i].r, []).get(TUNIC[i].r)).push(i);
+  document.getElementById("regions").innerHTML = [...regions].sort((a, b) => b[1].length - a[1].length).map(([r, idx]) => {
+    const tracked = idx.filter(i => TUNIC[i].t), k = got ? tracked.filter(i => got[i]).length : 0;
+    const done = got && k === tracked.length;
+    const list = idx.filter(i => showGot || state(i) !== "got");
+    const items = list.map(i => {
+      const l = TUNIC[i], s = state(i);
+      const note = s === "hand" ? t("hand") : l.t?.[1] === "chest open 19" ? t("shared") : "";
+      return `<li class="${s}" data-i="${i}"${note ? ` title="${esc(note)}"` : ""}>${esc(l.n)} <small>${esc(gname(l.g))}</small></li>`;
+    }).join("");
+    const mm = miniMap(idx);
+    return `<section class="region${BIG.has(r) ? " big" : ""}${mm ? "" : " nomap"}${done ? " done" : ""}">
+      <h2>${esc(r)}<span class="n">${got ? `${k} ${t("of")} ` : ""}${tracked.length}</span></h2>
+      ${mm}
+      <div>${items ? `<ul>${items}</ul>` : `<p class="note">${t("allDone")}</p>`}</div>
+    </section>`;
+  }).join("");
+}
+
+// Hovering a list item highlights its dot on the mini map, and vice versa.
+function highlight(e, on) {
+  const el = e.target.closest("[data-i]");
+  if (!el) return;
+  document.querySelectorAll(`[data-i="${el.dataset.i}"]`).forEach(x => x.classList.toggle("hl", on));
+}
+const regionsEl = document.getElementById("regions");
+regionsEl.addEventListener("mouseover", e => highlight(e, true));
+regionsEl.addEventListener("mouseout", e => highlight(e, false));
+
+document.getElementById("chips").addEventListener("click", e => {
+  const b = e.target.closest("[data-g]");
+  if (!b) return;
+  shown.has(b.dataset.g) ? shown.delete(b.dataset.g) : shown.add(b.dataset.g);
+  render();
+});
+document.getElementById("showGot").onchange = render;
+
+async function load(file) {
+  const err = document.getElementById("err");
+  err.textContent = "";
+  try {
+    const has = parseSave(await file.text());
+    got = TUNIC.map(l => !!l.t && has(l.t));
+    render();
+  } catch (e) { err.textContent = e.message; }
+}
+document.getElementById("file").onchange = e => e.target.files[0] && load(e.target.files[0]);
+document.addEventListener("dragover", e => e.preventDefault());
+document.addEventListener("drop", e => { e.preventDefault(); e.dataTransfer.files[0] && load(e.dataTransfer.files[0]); });
+document.getElementById("cp").onclick = e => {
+  navigator.clipboard?.writeText(document.getElementById("p").textContent);
+  e.target.textContent = t("copied");
+};
+I18N.init(STRINGS, () => { document.getElementById("err").textContent = ""; render(); });
+</script>
+</body>
+</html>
