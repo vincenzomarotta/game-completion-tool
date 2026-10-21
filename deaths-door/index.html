@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Death's Door Completionist</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Alegreya+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --fog:#2b2f34; --fog-deep:#1d2024; --stone:#3a3f45; --ash:#8f969c;
+  --bone:#e4e1d8; --soul:#b9eadf; --ember:#d0473b;
+  --display:"IM Fell English",Georgia,serif; --body:"Alegreya Sans",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;color:var(--bone);font:17px/1.55 var(--body);
+  background:var(--fog-deep) radial-gradient(ellipse 120% 70% at 50% -10%,#454b52 0%,var(--fog) 45%,var(--fog-deep) 100%) no-repeat;
+  min-height:100vh;
+}
+main{max-width:1040px;margin:0 auto;padding:48px 16px 80px}
+:focus-visible{outline:2px solid var(--soul);outline-offset:3px}
+
+/* hero: the door is the upload target */
+.hero{display:grid;grid-template-columns:auto 1fr;gap:48px;align-items:center}
+.door{position:relative;width:220px;cursor:pointer;display:block}
+.door input{position:absolute;opacity:0;width:1px;height:1px}
+.door svg{display:block;width:100%;height:auto;overflow:visible}
+.door .frame{fill:none;stroke:var(--ash);stroke-width:3;transition:stroke .2s}
+.door .void{fill:#0f1113}
+.door .light{fill:url(#soulGrad);transition:y 1.6s cubic-bezier(.2,.7,.2,1),height 1.6s cubic-bezier(.2,.7,.2,1)}
+.door .pct{font:44px var(--display);fill:var(--bone);text-anchor:middle;opacity:0;transition:opacity .6s 1s}
+.door .hint{font:15px var(--display);font-style:italic;fill:var(--ash);text-anchor:middle}
+.door.loaded .pct{opacity:1}
+.door.loaded .hint{display:none}
+.door:hover .frame,.door.over .frame,.door:focus-within .frame{stroke:var(--soul)}
+.door.over .void{fill:#16201f}
+h1{font:400 clamp(40px,6vw,64px)/1.02 var(--display);margin:0 0 16px;letter-spacing:-.01em}
+.lede{max-width:34em;margin:0 0 20px;color:#c9c6bd}
+.path{font-size:15px;color:var(--ash);max-width:36em}
+.path code{font:14px/1.4 var(--body);color:var(--bone);background:rgba(0,0,0,.25);padding:3px 8px;border-radius:3px;word-break:break-all}
+.path button{font:inherit;font-size:14px;background:none;border:0;color:var(--soul);cursor:pointer;padding:0 4px;text-decoration:underline;text-underline-offset:3px}
+#err{color:var(--ember);margin-top:12px;min-height:1.5em}
+
+/* results */
+#results[hidden]{display:none}
+.bar-top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:12px;margin:56px 0 24px;border-bottom:1px solid var(--stone);padding-bottom:12px}
+.bar-top h2{font:400 30px var(--display);margin:0}
+.views{display:flex;gap:4px}
+.views button{font:inherit;font-size:15px;color:var(--ash);background:none;border:1px solid transparent;border-radius:999px;padding:4px 14px;cursor:pointer}
+.views button[aria-pressed=true]{color:var(--bone);border-color:var(--stone);background:rgba(255,255,255,.04)}
+.grid{columns:2 420px;column-gap:40px}
+.group{break-inside:avoid;margin:0 0 36px}
+.group h3{font:400 23px/1.2 var(--display);margin:0;display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.group h3 .n{font:500 15px var(--body);color:var(--ash);white-space:nowrap}
+.group.done h3 .n{color:var(--soul)}
+.track{height:3px;background:var(--stone);margin:8px 0 12px}
+.track i{display:block;height:100%;background:var(--soul);box-shadow:0 0 8px rgba(185,234,223,.5)}
+.sub{font:italic 16px var(--display);color:var(--ash);margin:14px 0 4px}
+.group ul{list-style:none;margin:0;padding:0}
+.group li{padding:3px 0 3px 18px;position:relative}
+.group li::before{content:"";position:absolute;left:2px;top:.72em;width:6px;height:6px;border-radius:50%;background:var(--ember)}
+.group li.got{color:var(--ash)}
+.group li.got::before{background:var(--soul)}
+.group li small{color:var(--ash);font-size:14px}
+.note{font-size:15px;color:var(--ash);margin:6px 0 0}
+details{margin-top:10px;font-size:15px}
+summary{cursor:pointer;color:var(--ash)}
+.back{display:inline-block;margin:-24px 0 24px;color:var(--ash);font-size:15px;text-underline-offset:3px}
+.back:hover{color:var(--bone)}
+footer{margin-top:64px;font-size:14px;color:var(--ash)}
+footer a{color:var(--ash)}
+
+@media (max-width:640px){
+  main{padding-top:32px}
+  .hero{grid-template-columns:1fr;gap:24px;justify-items:center;text-align:center}
+  .door{width:180px}
+  .path{margin:0 auto}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+<a class="back" href="../">Tutti i giochi</a>
+<section class="hero">
+  <label class="door" id="door" title="Carica il salvataggio">
+    <input type="file" accept=".sav,.bak" aria-label="Carica il salvataggio di Death's Door">
+    <svg viewBox="0 0 200 300" aria-hidden="true">
+      <defs>
+        <linearGradient id="soulGrad" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0" stop-color="#b9eadf" stop-opacity=".95"/>
+          <stop offset="1" stop-color="#b9eadf" stop-opacity=".35"/>
+        </linearGradient>
+        <clipPath id="arch"><path d="M20 300V100A80 80 0 0 1 180 100V300Z"/></clipPath>
+      </defs>
+      <path class="void" d="M20 300V100A80 80 0 0 1 180 100V300Z"/>
+      <rect class="light" id="light" x="0" y="300" width="200" height="0" clip-path="url(#arch)"/>
+      <path class="frame" d="M8 300V100A92 92 0 0 1 192 100V300"/>
+      <path class="frame" d="M20 300V100A80 80 0 0 1 180 100V300" style="stroke-width:1.5"/>
+      <text class="hint" x="100" y="180">trascina qui</text>
+      <text class="hint" x="100" y="200">il salvataggio</text>
+      <text class="pct" id="pct" x="100" y="190"></text>
+    </svg>
+  </label>
+  <div>
+    <h1>Death's Door Completionist</h1>
+    <p class="lede">Dai il tuo salvataggio alla porta: ti dice quali oggetti, semi, santuari e sfere d'anima mancano, e in quale zona andarli a cercare. Il file resta sul tuo computer.</p>
+    <p class="path">I salvataggi sono in <code id="p">%USERPROFILE%\AppData\LocalLow\Acid Nerve\DeathsDoor\SAVEDATA</code><button id="cp" type="button">Copia percorso</button><br>Incolla il percorso nella barra del selettore file e scegli <b>Save_slot1.sav</b> (o lo slot che usi).</p>
+    <div id="err" role="alert"></div>
+  </div>
+</section>
+
+<section id="results" hidden>
+  <div class="bar-top">
+    <h2 id="total"></h2>
+    <div class="views" role="group" aria-label="Raggruppa">
+      <button type="button" data-view="cat" aria-pressed="true">Per categoria</button>
+      <button type="button" data-view="zone" aria-pressed="false">Per zona</button>
+    </div>
+  </div>
+  <div class="grid" id="out"></div>
+</section>
+
+<footer>Dati delle posizioni da <a href="https://github.com/dpinela/DeathsDoor.ItemChanger">DeathsDoor.ItemChanger</a>. Progetto amatoriale, non affiliato con Acid Nerve.</footer>
+</main>
+<script>
+// [name, area, saveKey] per category; derived from DeathsDoor.ItemChanger's location table
+const DATA = {"Armi":[["Rogue Daggers","Estate of the Urn Witch","daggers"],["Discarded Umbrella","Hall of Doors","umbrella"],["Reaper's Greatsword","Stranded Sailor","sword_heavy"],["Thunder Hammer","Mushroom Dungeon","hammer"]],"Magie e potenziamenti":[["Fire (Avarice)","Ceramic Manor","unlocked_fire"],["Bomb (Avarice)","Mushroom Dungeon","unlocked_bombs"],["Hookshot (Avarice)","Flooded Fortress","unlocked_hookshot"],["Fire Silent Servant","","upgraded_fire"],["Bomb Silent Servant","","upgraded_bombs"],["Hookshot Silent Servant","","upgraded_hookshot"],["Arrow Silent Servant","","upgraded_arrows"]],"Anime giganti":[["Betty","Betty's Lair","soul_yeti"],["Frog King","Throne of the Frog King","soul_frog"],["Grandma","Urn Witch's Laboratory","soul_gran"]],"Oggetti luccicanti":[["Engagement Ring","Ceramic Manor","drop_trinket_ring"],["Old Compass","Lost Cemetery","drop_trinket_compass"],["Incense","Lost Cemetery","drop_trinket_incense"],["Undying Blossom","Lost Cemetery","drop_trinket_flower"],["Old Photograph","Ceramic Manor","drop_trinket_photo"],["Sludge-Filled Urn","Estate of the Urn Witch","drop_trinket_elixir"],["Token of Death","Lost Cemetery","drop_trinket_coin"],["Rusty Garden Trowel","Estate of the Urn Witch","drop_trinket_trowel"],["Captain's Log","Stranded Sailor","drop_trinket_journal"],["Giant Arrowhead","Throne of the Frog King","drop_trinket_arrow"],["Malformed Seed","Overgrown Ruins","drop_trinket_seed"],["Corrupted Antler","Mushroom Dungeon","drop_trinket_antler"],["Magical Forest Horn","Overgrown Ruins","drop_trinket_basoon"],["Ancient Crown","Castle Lockstone","drop_trinket_crown"],["Grunt's Old Mask","Stranded Sailor","drop_trinket_mask"],["Ancient Door Scale Model","Hall of Doors","drop_trinket_door_old"],["Modern Door Scale Model","Hall of Doors","drop_trinket_door_new"],["Rusty Belltower Key","Hall of Doors","drop_trinket_rusty_key"],["Surveillance Device","Hall of Doors","drop_trinket_surv"],["Shiny Medallion","Camp of the Free Crows","drop_trinket_medal"],["Ink-Covered Teddy Bear","Stranded Sailor","drop_trinket_teddy"],["Death's Contract","Castle Lockstone","drop_trinket_contract"],["Makeshift Soul Key","Grove of Spirits","drop_trinket_soulkey"],["Mysterious Locket","Old Watchtowers","drop_trinket_locket"]],"Santuari (vita/magia)":[["Heart Shrine-Cemetery Behind Entrance","Lost Cemetery","shrine_graveyardhookshot"],["Magic Shrine-Cemetery After Smough Arena","Lost Cemetery","shrine_graveyardbomb"],["Heart Shrine-Cemetery Winding Bridge End","Lost Cemetery","shrine_graveyardturncam"],["Heart Shrine-Hookshot Arena","Stranded Sailor","shrine_sailorhookshot"],["Magic Shrine-Sailor Turncam","Stranded Sailor","shrine_sailorturncam"],["Magic Shrine-Lockstone Secret West","Castle Lockstone","shrine_fortress"],["Heart Shrine-Camp Ice Skating","Camp of the Free Crows","shrine_icechallenge"],["Magic Shrine-Ruins Hookshot Arena","Overgrown Ruins","shrine_foresthookshot"],["Magic Shrine-Ruins Turncam","Overgrown Ruins","shrine_forestturncam"],["Heart Shrine-Dungeon Water Arena","Mushroom Dungeon","shrine_dungeonbomb"],["Heart Shrine-Ruins Sewer","Overgrown Ruins","shrine_forestsewer"],["Magic Shrine-Fortress Bow Secret","Flooded Fortress","shrine_swamp"],["Magic Shrine-Estate Left of Manor","Estate of the Urn Witch","shrine_gardenturncam"],["Heart Shrine-Garden of Life","Estate of the Urn Witch","shrine_gardendrop"],["Magic Shrine-Manor Bathroom Puzzle","Ceramic Manor","shrine_mansionreflection"],["Heart Shrine-Furnace Cart Puzzle","Furnace Observation Rooms","shrine_basement"]],"Tavolette e gufi":[["Red Ancient Tablet of Knowledge","Flooded Fortress","drop_truthtablet_1"],["Yellow Ancient Tablet of Knowledge","Overgrown Ruins","drop_truthtablet_2"],["Green Ancient Tablet of Knowledge","Estate of the Urn Witch","drop_truthtablet_3"],["Cyan Ancient Tablet of Knowledge","Lost Cemetery","drop_truthtablet_4"],["Blue Ancient Tablet of Knowledge","Old Watchtowers","drop_truthtablet_5"],["Purple Ancient Tablet of Knowledge","Lost Cemetery","drop_truthtablet_6"],["Estate Owl","Estate of the Urn Witch","drop_truthshard_1"],["Ruins Owl","Overgrown Ruins","drop_truthshard_2"],["Watchtowers Owl","Old Watchtowers","drop_truthshard_3"]],"Semi della vita":[["Cemetery Broken Bridge","Lost Cemetery","drop_seed_graveyardbrokenbridge"],["Catacombs Tower","Lost Cemetery","drop_seed_graveyardtower"],["Cemetery Left of Main Entrance","Lost Cemetery","drop_seed_graveyardbuilding"],["Cemetery Near Tablet Gate","Lost Cemetery","drop_seed_graveyardcliff"],["Between Cemetery and Sailor","Lost Cemetery","drop_seed_cavescrate"],["Sailor Upper","Stranded Sailor","drop_seed_sailormountain"],["Lockstone Upper East","Castle Lockstone","drop_seed_castlegardeneast"],["Lockstone Soul Door","Castle Lockstone","drop_seed_castledoor"],["Lockstone Behind Bars","Castle Lockstone","drop_seed_castleelevator"],["Lockstone Entrance West","Castle Lockstone","drop_seed_castlegardenwest"],["Lockstone North","Castle Lockstone","drop_seed_castleeast"],["Camp Ledge With Huts","Camp of the Free Crows","drop_seed_crowcavesledge"],["Camp Stall","Camp of the Free Crows","drop_seed_crowcampstall"],["Camp Rooftops","Camp of the Free Crows","drop_seed_fortressexteriorcrate"],["Watchtowers Ice Skating","Old Watchtowers","drop_seed_mountaintopsice"],["Watchtowers Tablet Door","Old Watchtowers","drop_seed_mountaintopstruth"],["Watchtowers Archer Platform","Old Watchtowers","drop_seed_mountaintopshookshot"],["Watchtowers Boxes","Old Watchtowers","drop_seed_mountaintopsroute1"],["Dungeon Fire Puzzle Near Water Arena","Mushroom Dungeon","drop_seed_dungeonconnect"],["Ruins Lord of Doors Arena","Overgrown Ruins","drop_seed_forestgargoyle"],["Ruins Fire Plant Corridor","Overgrown Ruins","drop_seed_forestcorridor"],["Dungeon Water Arena Left Exit","Mushroom Dungeon","drop_seed_dungeontwindoor"],["Ruins Right Middle","Overgrown Ruins","drop_seed_forestmiddle"],["Ruins On Settlement Wall","Overgrown Ruins","drop_seed_forestvillage"],["Ruins Behind Boxes","Overgrown Ruins","drop_seed_forestintro"],["Ruins Down Through Bomb Wall","Overgrown Ruins","drop_seed_forestdrop"],["Dungeon Above Rightmost Crow","Mushroom Dungeon","drop_seed_dungeoneastexit"],["Dungeon Right Above Key","Mushroom Dungeon","drop_seed_dungeonprisonbreak"],["Dungeon Avarice Bridge","Mushroom Dungeon","drop_seed_dungeonbridge"],["Fortress Watchtower","Flooded Fortress","drop_seed_swampwatchtower"],["Fortress Statue","Flooded Fortress","drop_seed_swampstatue"],["Fortress Bridge","Flooded Fortress","drop_seed_swampbridge"],["Fortress Intro Crate","Flooded Fortress","drop_seed_swampintrocrate"],["Fortress East After Statue","Flooded Fortress","drop_seed_swampintroeast"],["Estate Family Tomb","Estate of the Urn Witch","drop_seed_gardennorthwest"],["Estate Entrance","Estate of the Urn Witch","drop_seed_gardenintrostart"],["Estate Hedge Gaps","Estate of the Urn Witch","drop_seed_gardenbush"],["Garden of Joy","Estate of the Urn Witch","drop_seed_gardensouthwest"],["Manor Boxes","Ceramic Manor","drop_seed_mansionsquareroom"],["Manor Near Brazier","Ceramic Manor","drop_seed_mansionrightshelves"],["Manor Below Big Pot Arena","Ceramic Manor","drop_seed_ballroom"],["Manor Rafters","Ceramic Manor","drop_seed_mansionattic"],["Manor Main Room Upper","Ceramic Manor","drop_seed_mansioncentre"],["Manor Spinny Pot Room","Ceramic Manor","drop_seed_mansionleftshelves"],["Manor Library Shelf","Ceramic Manor","drop_seed_mansionlibraryshelves"],["Cart Puzzle","Furnace Observation Rooms","drop_seed_basementshrineabyss"],["Furnace Entrance","Furnace Observation Rooms","drop_seed_basementintro"],["Inner Furnace Horizontal Pistons","Inner Furnace","drop_seed_basementplague1"],["Inner Furnace Conveyor Bridge","Inner Furnace","drop_seed_basementconveyor"],["Inner Furnace Conveyor Gauntlet","Inner Furnace","drop_seed_basementplague2"]],"Sfere d'anima":[["Fire Return Upper","Hall of Doors","drop_dropsoul_HoDfirereturn1"],["Hookshot Secret","Hall of Doors","drop_dropsoul_hodhookshotsecret"],["Bomb Return","Hall of Doors","drop_dropsoul_hodbombreturn"],["Bomb Secret","Hall of Doors","drop_dropsoul_hodbombsecret"],["Hookshot Return","Hall of Doors","drop_dropsoul_hookshotreturn"],["Fire Return Lower","Hall of Doors","drop_dropsoul_hodfirereturn2"],["Fire Secret","Hall of Doors","drop_dropsoul_hodfiresecret"],["Catacombs Exit","Lost Cemetery","drop_dropsoul_catacombsexit"],["Cemetery Hookshot Towers","Lost Cemetery","drop_dropsoul_graveyardhookshot"],["Cemetery Under Bridge","Lost Cemetery","drop_dropsoul_graveyardbridge"],["Cemetery East Tree","Lost Cemetery","drop_dropsoul_graveyardtree"],["Cemetery Winding Bridge End","Lost Cemetery","drop_dropsoul_graveyardbridgeroom"],["Catacombs Room 2","Lost Cemetery","drop_dropsoul_catacombs2"],["Catacombs Room 1","Lost Cemetery","drop_dropsoul_catacombs1"],["Cemetery Gated Sewer","Lost Cemetery","drop_dropsoul_graveyardsewer"],["Catacombs Entrance","Lost Cemetery","drop_dropsoul_catacombsentrance"],["Cemetery Cave","Lost Cemetery","drop_dropsoul_graveyardcave"],["Sailor Turncam","Stranded Sailor","drop_dropsoul_sailorturncam"],["North Lockstone Sewer","Castle Lockstone","drop_dropsoul_castlesewer2"],["Lockstone Hookshot North","Castle Lockstone","drop_dropsoul_castlehookshoteast"],["Lockstone Exit","Castle Lockstone","drop_dropsoul_castleexit"],["West Lockstone Sewer","Castle Lockstone","drop_dropsoul_castlesewer1"],["Camp Rooftops","Camp of the Free Crows","drop_dropsoul_fortressexterior"],["Camp Broken Bridge","Camp of the Free Crows","drop_dropsoul_crowcavesbridge"],["Watchtowers Behind Barb Elevator","Old Watchtowers","drop_dropsoul_mountaintopsturncam"],["Dungeon Vine","Mushroom Dungeon","drop_dropsoul_dungeonpeek"],["Ruins Stump","Overgrown Ruins","drop_dropsoul_forestcolliseumhookshot"],["Ruins Outside Left Dungeon Exit","Overgrown Ruins","drop_dropsoul_forestraised"],["Dungeon Cobweb","Mushroom Dungeon","drop_dropsoul_dungeoncobweb"],["Ruins Left After Key Door","Overgrown Ruins","drop_dropsoul_forestcorner"],["Ruins Lower Bomb Wall","Overgrown Ruins","drop_dropsoul_forestblocked"],["Ruins Lord of Doors Arena Hookshot","Overgrown Ruins","drop_dropsoul_forestnorthhookshot"],["Dungeon Lower Entrance","Mushroom Dungeon","drop_dropsoul_swamproute"],["Ruins Upper Above Horn","Overgrown Ruins","drop_dropsoul_forestcolliseum"],["Ruins Above Three Plants","Overgrown Ruins","drop_dropsoul_forestvine"],["Ruins Up Turncam Ladder","Overgrown Ruins","drop_dropsoul_forestladder"],["Ruins Above Entrance Gate","Overgrown Ruins","drop_dropsoul_forestentrancewall"],["Ruins Upper Bomb Wall","Overgrown Ruins","drop_dropsoul_forestbomber"],["Dungeon Left Exit Shelf","Mushroom Dungeon","drop_dropsoul_dungeonshelfdrop"],["Ruins Lower Hookshot","Overgrown Ruins","drop_dropsoul_forestintrohookshot"],["Fortress Bomb","Flooded Fortress","drop_dropsoul_swampbomb"],["Fortress Hidden Sewer","Flooded Fortress","drop_dropsoul_swampsewer"],["Fortress Drop","Flooded Fortress","drop_dropsoul_swampdrop"],["Estate Access Crypt","Lost Cemetery","drop_dropsoul_cryptgrave"],["Estate Balcony","Estate of the Urn Witch","drop_dropsoul_gardenbalcony"],["Garden of Love Turncam","Estate of the Urn Witch","drop_dropsoul_gardenturncam"],["Garden of Life Hookshot Loop","Estate of the Urn Witch","drop_dropsoul_gardennorthhookshot"],["Garden of Love Bomb Walls","Estate of the Urn Witch","drop_dropsoul_familytombbomb"],["Garden of Life Bomb Wall","Estate of the Urn Witch","drop_dropsoul_gardenknight"],["Estate Broken Boardwalk","Estate of the Urn Witch","drop_dropsoul_gardensouthhookshot"],["Estate Secret Cave","Estate of the Urn Witch","drop_dropsoul_gardencave"],["Estate Twin Benches","Estate of the Urn Witch","drop_dropsoul_gardensbenches"],["Estate Sewer Middle","Estate of the Urn Witch","drop_dropsoul_gardensewerroute1"],["Estate Sewer End","Estate of the Urn Witch","drop_dropsoul_gardensewerroute2"],["Garden of Peace","Estate of the Urn Witch","drop_dropsoul_gardensouthbomb"],["Manor Imp Loft","Ceramic Manor","drop_dropsoul_mansionladder"],["Manor Library Shelf","Ceramic Manor","drop_dropsoul_mansionlibrary"],["Manor Chandelier","Ceramic Manor","drop_chand_souls"],["Furnace Lantern Chain","Furnace Observation Rooms","drop_dropsoul_basementlanternchain"],["Small Room","Furnace Observation Rooms","drop_dropsoul_basementsmallroom"],["Furnace Entrance Sewer","Furnace Observation Rooms","drop_dropsoul_basementsewer"]]};
+
+// ponytail: pots are only counted per zone, the plant_* keys don't map 1:1 to known pot names
+const POTS = [
+  ["Lost Cemetery / Estate / Silent Servants", /^plant_(graveyard|preservant|secret|garden)/, ["Outside Catacombs Exit","Catacombs Room 2","Cemetery Right Arena","Cemetery Summit","Cemetery Central Arena","Bomb Silent Servant","Fire Silent Servant","Hookshot Silent Servant (Stranded Sailor)","Estate Door","Garden of Joy","Garden of Peace","Garden of Love Entrance","Garden of Love Hidden Left","Garden of Love Hidden Right","Garden of Life"]],
+  ["Ceramic Manor", /^plant_mansion/, ["Lobby","Rafters","Imp Loft","Post Dining","Library","Bedroom"]],
+  ["Inner Furnace", /^plant_basement/, ["Burner 2","Burner 3","Islands","Burner 8","Final"]],
+  ["Castle Lockstone", /^plant_castle/, ["West Crow","West Keyed Crow","Entrance","East Crow"]],
+  ["Camp of the Free Crows", /^plant_fortressexterior/, ["Castle Door"]],
+  ["Old Watchtowers", /^plant_mountaintops/, ["First","Barb Elevator","Lasers Arena","Owl","Cave Entrance"]],
+  ["Overgrown Ruins", /^plant_forest/, ["Key","Fire Plant Corridor","Right Arena","Sewer","Left of Lord of Doors Arena"]],
+  ["Mushroom Dungeon", /^plant_dungeon/, ["Cobweb Room","Water Arena","Hall","Rightmost Crow"]],
+  ["Flooded Fortress", /^plant_swamp/, ["Main Gate","U Turn","Breakable Bridges","Bridge","Exit"]],
+];
+const POT_CAT = "Vasi piantati";
+
+// GameSave is a .NET BinaryFormatter blob: boolKeys is a List<string> of unlocked keys,
+// intKeys a List<IntKey{id,value}>. Pull every string record and split by where IntKey starts.
+function parseSave(buf) {
+  const d = new Uint8Array(buf), dv = new DataView(buf);
+  const find = s => {
+    const t = [...s].map(c => c.charCodeAt(0));
+    outer: for (let i = 0; i <= d.length - t.length; i++) {
+      for (let j = 0; j < t.length; j++) if (d[i + j] !== t[j]) continue outer;
+      return i;
+    }
+    return -1;
+  };
+  const a = find("GameSave+IntKey[]"), b = find("\x0fGameSave+IntKey\x02");
+  if (a < 0 || b < 0) throw new Error("Questo file non è un salvataggio di Death's Door. Scegli un file Save_slotN.sav dalla cartella SAVEDATA.");
+  const bools = new Set(), ints = {};
+  for (let p = a; p < d.length - 6; p++) {
+    const n = d[p + 5];
+    if (d[p] !== 6 || n < 1 || n > 127 || p + 6 + n > d.length) continue;
+    const bytes = d.subarray(p + 6, p + 6 + n);
+    if (bytes.some(c => c < 32 || c > 126)) continue;
+    const s = String.fromCharCode(...bytes), e = p + 6 + n;
+    if (p < b) bools.add(s);
+    else if (e + 4 <= d.length) ints[s] = dv.getInt32(e, true);
+    p = e - 1;
+  }
+  return { bools, ints, has: k => bools.has(k) || (ints[k] | 0) > 0 };
+}
+
+const esc = s => s.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]);
+
+// Flatten everything into rows {cat, area, name, got}; pots become one row per missing/planted slot.
+function evaluate(save) {
+  const rows = [];
+  for (const [cat, items] of Object.entries(DATA))
+    for (const [name, area, key] of items) rows.push({ cat, area: area || "Altro", name, got: save.has(key) });
+  for (const [zone, re, names] of POTS) {
+    const n = Math.min([...save.bools].filter(k => re.test(k)).length, names.length);
+    names.forEach((_, i) => rows.push({ cat: POT_CAT, area: zone, name: null, names, got: i < n }));
+  }
+  return rows;
+}
+
+function groupBy(rows, key) {
+  const m = new Map();
+  for (const r of rows) (m.get(r[key]) ?? m.set(r[key], []).get(r[key])).push(r);
+  return [...m];
+}
+
+function list(rows, sub) {
+  const named = rows.filter(r => r.name);
+  const pots = rows.filter(r => !r.name);
+  let html = "";
+  if (named.length) html += `<ul>${named.map(r => `<li class="${r.got ? "got" : ""}">${esc(r.name)}${sub ? ` <small>${esc(r[sub])}</small>` : ""}</li>`).join("")}</ul>`;
+  for (const [zone, ps] of groupBy(pots, "area")) {
+    const miss = ps.filter(p => !p.got).length;
+    if (!miss) continue;
+    html += `<ul><li>${miss === 1 ? "Un vaso" : miss + " vasi"} da piantare${sub ? ` <small>${esc(sub === "cat" ? POT_CAT : zone)}</small>` : ""}</li></ul>
+      <p class="note">Il gioco non salva quale vaso: è uno tra ${ps[0].names.map(esc).join(", ")}.</p>`;
+  }
+  return html;
+}
+
+function group(title, rows, inner, sub) {
+  const got = rows.filter(r => r.got).length, done = got === rows.length;
+  const missing = rows.filter(r => !r.got), have = rows.filter(r => r.got && r.name);
+  return `<section class="group${done ? " done" : ""}">
+    <h3>${esc(title)}<span class="n">${got} di ${rows.length}</span></h3>
+    <div class="track"><i style="width:${(100 * got / rows.length).toFixed(1)}%"></i></div>
+    ${done ? `<p class="note">Completo.</p>` : inner(missing)}
+    ${have.length && !done ? `<details><summary>Già presi (${have.length})</summary>${list(have, sub)}</details>` : ""}
+  </section>`;
+}
+
+let rows = [], view = "cat";
+
+function render() {
+  const [key, other] = view === "cat" ? ["cat", "area"] : ["area", "cat"];
+  const groups = groupBy(rows, key).sort((a, b) =>
+    (a[1].every(r => r.got) - b[1].every(r => r.got)));
+  document.getElementById("out").innerHTML = groups.map(([title, rs]) =>
+    group(title, rs, miss => groupBy(miss, other).map(([t, r]) =>
+      `<p class="sub">${esc(t)}</p>${list(r)}`).join(""), other)).join("");
+}
+
+function show(save) {
+  rows = evaluate(save);
+  const got = rows.filter(r => r.got).length, pct = 100 * got / rows.length;
+  document.getElementById("total").textContent = `${got} di ${rows.length} trovati`;
+  document.getElementById("pct").textContent = Math.floor(pct) + "%";
+  const light = document.getElementById("light"), h = 300 * pct / 100;
+  light.setAttribute("y", 300 - h);
+  light.setAttribute("height", h);
+  document.getElementById("door").classList.add("loaded");
+  document.getElementById("results").hidden = false;
+  render();
+}
+
+async function load(file) {
+  const err = document.getElementById("err");
+  err.textContent = "";
+  try { show(parseSave(await file.arrayBuffer())); }
+  catch (e) { err.textContent = e.message; }
+}
+
+const door = document.getElementById("door");
+door.querySelector("input").onchange = e => e.target.files[0] && load(e.target.files[0]);
+door.ondragover = e => { e.preventDefault(); door.classList.add("over"); };
+door.ondragleave = () => door.classList.remove("over");
+door.ondrop = e => { e.preventDefault(); door.classList.remove("over"); e.dataTransfer.files[0] && load(e.dataTransfer.files[0]); };
+document.getElementById("cp").onclick = e => {
+  navigator.clipboard?.writeText(document.getElementById("p").textContent);
+  e.target.textContent = "Copiato";
+};
+document.querySelectorAll(".views button").forEach(b => b.onclick = () => {
+  view = b.dataset.view;
+  document.querySelectorAll(".views button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  render();
+});
+</script>
+</body>
+</html>

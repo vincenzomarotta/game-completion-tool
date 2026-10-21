@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Game Completion Tool</title>
+<meta name="description" content="Carica il salvataggio del tuo gioco e scopri cosa ti manca per il 100% e dove trovarlo.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Alegreya+Sans:wght@400;500&family=IM+Fell+English&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#1e2029; --ink:#ecebe6; --dim:#9a9caa; --rule:#343744;
+  --display:"Bricolage Grotesque",system-ui,sans-serif; --body:"Alegreya Sans",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 var(--body)}
+main{max-width:1040px;margin:0 auto;padding:72px 16px 80px}
+:focus-visible{outline:2px solid var(--ink);outline-offset:4px}
+h1{font:800 clamp(44px,8vw,88px)/.95 var(--display);letter-spacing:-.03em;margin:0 0 20px;max-width:9em}
+.lede{font-size:19px;color:#c8c8d0;max-width:32em;margin:0 0 56px}
+h2{font:500 15px var(--body);color:var(--dim);margin:0 0 16px}
+.shelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
+
+/* each game card carries its own game's palette */
+.game{display:grid;grid-template-columns:72px 1fr;gap:20px;align-items:center;padding:24px;border-radius:14px;text-decoration:none;color:inherit;min-height:160px}
+.game h3{margin:0 0 4px}
+.game p{margin:0;font-size:15px}
+.game .tracks{margin-top:10px;font-size:14px}
+
+.dd{background:radial-gradient(ellipse 120% 90% at 30% 0%,#4a5057,#2b2f34 60%,#1d2024);color:#e4e1d8;border:1px solid #3a3f45;transition:border-color .2s}
+.dd:hover{border-color:#b9eadf}
+.dd h3{font:400 30px/1.05 "IM Fell English",Georgia,serif}
+.dd .tracks{color:#8f969c}
+.dd svg .light{fill:#b9eadf;opacity:.85}
+.dd svg .frame{fill:none;stroke:#8f969c;stroke-width:3}
+.dd:hover svg .frame{stroke:#b9eadf}
+
+.soon{border:1.5px dashed var(--rule);color:var(--dim)}
+.soon h3{font:500 22px var(--display);color:var(--ink)}
+.soon .slot{width:56px;height:56px;border-radius:50%;border:1.5px dashed var(--rule);justify-self:center}
+
+footer{margin-top:72px;font-size:14px;color:var(--dim);border-top:1px solid var(--rule);padding-top:16px}
+footer a{color:var(--dim)}
+@media (max-width:480px){main{padding-top:48px}.game{grid-template-columns:56px 1fr;padding:20px}}
+</style>
+</head>
+<body>
+<main>
+<h1>Game Completion Tool</h1>
+<p class="lede">Carica il salvataggio, scopri cosa ti manca per il 100% e in quale zona andarlo a cercare. Il file non lascia mai il tuo computer.</p>
+
+<h2>Giochi</h2>
+<div class="shelf">
+  <a class="game dd" href="deaths-door/">
+    <svg viewBox="0 0 200 300" aria-hidden="true">
+      <clipPath id="ddArch"><path d="M20 300V100A80 80 0 0 1 180 100V300Z"/></clipPath>
+      <path d="M20 300V100A80 80 0 0 1 180 100V300Z" fill="#0f1113"/>
+      <rect class="light" x="0" y="120" width="200" height="180" clip-path="url(#ddArch)"/>
+      <path class="frame" d="M8 300V100A92 92 0 0 1 192 100V300"/>
+    </svg>
+    <div>
+      <h3>Death's Door</h3>
+      <p>Oggetti luccicanti, semi, vasi, santuari, sfere d'anima, tavolette.</p>
+      <p class="tracks">224 cose da trovare</p>
+    </div>
+  </a>
+
+  <div class="game soon">
+    <span class="slot" aria-hidden="true"></span>
+    <div>
+      <h3>Prossimo gioco</h3>
+      <p>In lavorazione.</p>
+    </div>
+  </div>
+</div>
+
+<footer>Progetto amatoriale, non affiliato con gli sviluppatori dei giochi. Codice su <a href="https://github.com/vincenzomarotta/game-completition-tool">GitHub</a>.</footer>
+</main>
+</body>
+</html>
