@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hollow Knight Completionist</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Alegreya+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root{
+  --abyss:#0b0f17; --deep:#121826; --ink:#1b2333; --line:#2a3447;
+  --bone:#e8e6df; --dim:#8a93a6; --soul:#f4f1e8; --amber:#f0b45a; --got:#4a5568;
+  --display:"Cinzel",Georgia,serif; --body:"Alegreya Sans",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--abyss);color:var(--bone);font:16px/1.5 var(--body)}
+:focus-visible{outline:2px solid var(--soul);outline-offset:2px}
+a{color:inherit}
+header{max-width:1400px;margin:0 auto;padding:18px 16px 20px;display:grid;grid-template-columns:1fr auto;gap:8px 24px;align-items:end}
+.top{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center}
+.back{color:var(--dim);font-size:15px;text-underline-offset:3px}
+.lang{display:flex;gap:2px}
+.lang button{font:500 14px var(--body);color:var(--dim);background:none;border:0;padding:4px 8px;cursor:pointer;border-radius:4px}
+.lang button[aria-pressed=true]{color:var(--bone);background:rgba(255,255,255,.08)}
+h1{font:400 clamp(30px,4.6vw,52px)/1.05 var(--display);letter-spacing:.06em;margin:8px 0 6px}
+.lede{margin:0;color:#c3c6cf;max-width:44em}
+.load{display:flex;flex-direction:column;align-items:flex-start;gap:6px;width:340px}
+.btn{display:inline-block;font:600 15px var(--body);color:var(--abyss);background:var(--soul);border-radius:999px;padding:10px 20px;cursor:pointer;white-space:nowrap}
+.btn:hover{background:#fff}
+.btn input{position:absolute;opacity:0;width:1px;height:1px}
+.path{font-size:13px;color:var(--dim);margin:0}
+.path code{font:13px var(--body);color:var(--bone);background:var(--ink);padding:1px 6px;border-radius:3px;word-break:break-all}
+.path button{font:inherit;background:none;border:0;color:var(--soul);text-decoration:underline;cursor:pointer;padding:0 2px}
+#err{color:var(--amber);font-size:14px;min-height:1.2em}
+
+.app{max-width:1400px;margin:0 auto;padding:0 16px 48px;display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:16px}
+#map{height:min(76vh,820px);border-radius:10px;background:var(--abyss);border:1px solid var(--line)}
+.leaflet-container{font:14px var(--body)}
+.leaflet-image-layer{filter:brightness(1.3) saturate(1.1)}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--ink);color:var(--bone);box-shadow:0 4px 18px rgba(0,0,0,.6)}
+.leaflet-popup-content{margin:12px 14px}
+.leaflet-popup-content h4{font:600 16px var(--body);margin:0 0 2px}
+.leaflet-popup-content p{margin:0;color:var(--dim)}
+.leaflet-popup-content ul{margin:6px 0 0;padding-left:16px}
+.leaflet-popup-content li.got{color:var(--dim);text-decoration:line-through}
+.leaflet-container a.leaflet-popup-close-button{color:var(--dim)}
+.leaflet-bar a{background:var(--ink);color:var(--bone);border-color:var(--line)}
+.leaflet-bar a:hover{background:var(--line)}
+.leaflet-control-attribution{background:rgba(11,15,23,.7)!important;color:var(--dim)}
+.leaflet-tooltip{background:var(--ink);color:var(--bone);border-color:var(--line)}
+
+aside{background:var(--deep);border:1px solid var(--line);border-radius:10px;height:min(76vh,820px);display:flex;flex-direction:column;overflow:hidden}
+.summary{padding:14px 16px;border-bottom:1px solid var(--line)}
+.summary h2{font:500 20px var(--body);margin:0}
+.summary label{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--dim);margin-top:8px;cursor:pointer}
+.cats{overflow:auto;padding:6px 0}
+.cat{border-bottom:1px solid rgba(42,52,71,.6)}
+.cat summary{list-style:none;display:grid;grid-template-columns:20px 1fr auto;gap:8px;align-items:center;padding:8px 16px;cursor:pointer}
+.cat summary::-webkit-details-marker{display:none}
+.cat summary input{accent-color:var(--amber);margin:0}
+.cat .n{color:var(--dim);font-size:14px;font-variant-numeric:tabular-nums}
+.cat.done .n{color:var(--soul)}
+.cat .bar{grid-column:2/-1;height:2px;background:var(--line)}
+.cat .bar i{display:block;height:100%;background:var(--amber)}
+.cat.done .bar i{background:var(--soul)}
+.cat ul{list-style:none;margin:0;padding:0 16px 10px 44px}
+.cat li button{font:inherit;font-size:14px;color:var(--bone);background:none;border:0;padding:2px 0;cursor:pointer;text-align:left}
+.cat li button:hover{color:var(--amber)}
+.cat li small{color:var(--dim)}
+.cat .area{font-size:12px;color:var(--dim);margin:8px 0 2px;font-style:italic}
+footer{max-width:1400px;margin:0 auto;padding:0 16px 32px;font-size:13px;color:var(--dim)}
+
+@media (max-width:900px){
+  header{grid-template-columns:1fr}
+  .load{width:auto}
+  .app{grid-template-columns:1fr}
+  #map{height:62vh}
+  aside{height:auto;max-height:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <a class="back" href="../" data-i18n="back">Tutti i giochi</a>
+    <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="it">IT</button><button type="button" data-lang="en">EN</button></div>
+  </div>
+  <div>
+    <h1>Hollow Knight</h1>
+    <p class="lede" data-i18n="lede"></p>
+  </div>
+  <div class="load">
+    <label class="btn"><input type="file" id="file" accept=".dat"><span data-i18n="load"></span></label>
+    <p class="path"><span data-i18n="pathA"></span> <code id="p">%USERPROFILE%\AppData\LocalLow\Team Cherry\Hollow Knight</code><button id="cp" type="button" data-i18n="copy"></button></p>
+    <div id="err" role="alert"></div>
+  </div>
+</header>
+
+<main class="app">
+  <div id="map"></div>
+  <aside>
+    <div class="summary">
+      <h2 id="total"></h2>
+      <label><input type="checkbox" id="showGot"> <span data-i18n="showGot"></span></label>
+    </div>
+    <div class="cats" id="cats"></div>
+  </aside>
+</main>
+
+<footer data-i18n="footer"></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/aes-js/3.1.2/index.min.js"></script>
+<script src="../i18n.js"></script>
+<script src="data.js"></script>
+<script>
+const STRINGS = {
+  it: {
+    back: "Tutti i giochi", load: "Carica user1.dat",
+    lede: "Carica il salvataggio e vedi sulla mappa cosa ti manca: bruchi, frammenti, amuleti, radici, reliquie e altro. Il file resta sul tuo computer.",
+    pathA: "Salvataggi in", copy: "copia", copied: "copiato",
+    showGot: "Mostra anche quelli già presi",
+    footer: 'Posizioni e regole del salvataggio da <a href="https://github.com/syyePhenomenol/MapChanger">MapChanger</a> e <a href="https://github.com/homothetyhk/RandomizerMod">RandomizerMod</a>. Mappa di Team Cherry. Progetto amatoriale, non affiliato con Team Cherry.',
+    notSave: "Questo file non è un salvataggio di Hollow Knight. Scegli user1.dat (o user2-4.dat) dalla cartella dei salvataggi.",
+    total: n => `${n} posizioni`, found: (g, n) => `${g} di ${n} trovati`, inShop: s => `Da ${s}`,
+  },
+  en: {
+    back: "All games", load: "Load user1.dat",
+    lede: "Load your save and see on the map what you're missing: grubs, shards, charms, roots, relics and more. The file stays on your computer.",
+    pathA: "Saves are in", copy: "copy", copied: "copied",
+    showGot: "Also show collected",
+    footer: 'Locations and save rules from <a href="https://github.com/syyePhenomenol/MapChanger">MapChanger</a> and <a href="https://github.com/homothetyhk/RandomizerMod">RandomizerMod</a>. Map by Team Cherry. Fan project, not affiliated with Team Cherry.',
+    notSave: "This isn't a Hollow Knight save. Pick user1.dat (or user2-4.dat) from the saves folder.",
+    total: n => `${n} locations`, found: (g, n) => `${g} of ${n} found`, inShop: s => `From ${s}`,
+  },
+};
+// [it, en]; order is the sidebar order, completion-relevant first
+const GROUPS = {
+  MaskShards: ["Frammenti di maschera", "Mask shards"], VesselFragments: ["Frammenti di vaso", "Vessel fragments"],
+  CharmNotches: ["Tacche per amuleti", "Charm notches"], PaleOre: ["Minerale pallido", "Pale ore"],
+  Charms: ["Amuleti", "Charms"], Skills: ["Abilità e incantesimi", "Skills and spells"], Dreamers: ["Sognatori", "Dreamers"],
+  Grubs: ["Larve", "Grubs"], WhisperingRoots: ["Radici sussurranti", "Whispering roots"], Shops: ["Negozi", "Shops"],
+  Maps: ["Mappe", "Maps"], Stags: ["Stazioni del cervo", "Stag stations"], Keys: ["Chiavi", "Keys"],
+  Relics: ["Reliquie", "Relics"], RancidEggs: ["Uova rancide", "Rancid eggs"], BossEssence: ["Essenza dei boss", "Boss essence"],
+  GrimmkinFlames: ["Fiamme dei Grimmkin", "Grimmkin flames"], JournalEntries: ["Voci del diario", "Journal entries"],
+  GeoChests: ["Forzieri di geo", "Geo chests"], BossGeo: ["Geo dei boss", "Boss geo"], Mimics: ["Larve mimiche", "Grub mimics"],
+  GeoRocks: ["Rocce di geo", "Geo rocks"],
+};
+const HIDDEN_BY_DEFAULT = new Set(["GeoRocks"]);
+const t = I18N.t;
+const gname = g => GROUPS[g][I18N.lang === "en" ? 1 : 0];
+const pretty = s => s.replace(/^[^-]+-/, "").replace(/_/g, " ");
+const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+// A save is a .NET BinaryFormatter string record holding base64 of AES-256-ECB(JSON).
+const KEY = new TextEncoder().encode("UKu52ePUBwetZ9wNX88o54dnfKRu0T1l");
+function parseSave(buf) {
+  const b = new Uint8Array(buf);
+  if (b[0] === 0x7b) return JSON.parse(new TextDecoder().decode(b)); // already-decrypted (modded) save
+  if (b[17] !== 6) throw new Error(t("notSave"));
+  let p = 22, len = 0, shift = 0, x;
+  do { x = b[p++]; len |= (x & 127) << shift; shift += 7; } while (x & 128);
+  const b64 = new TextDecoder("latin1").decode(b.subarray(p, p + len));
+  const cipher = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+  const plain = new aesjs.ModeOfOperation.ecb(KEY).decrypt(cipher);
+  return JSON.parse(new TextDecoder().decode(plain.subarray(0, plain.length - plain[plain.length - 1])));
+}
+
+function checker(save) {
+  const pd = save.playerData, sd = save.sceneData;
+  const scene = new Set([
+    ...sd.persistentBoolItems.filter(i => i.activated).map(i => i.id + "|" + i.sceneName),
+    ...sd.geoRocks.filter(i => i.hitsLeft <= 0).map(i => i.id + "|" + i.sceneName),
+  ]);
+  const has = tr => {
+    switch (tr[0]) {
+      case "b": return !!pd[tr[1]];
+      case "i": return (pd[tr[1]] || 0) >= tr[2];
+      case "l": return (pd[tr[1]] || []).includes(tr[2]);
+      case "s": return scene.has(tr[1] + "|" + tr[2]);
+      case "u": return tr[1].some(has);
+      case "c": return tr[1].every(has);
+    }
+  };
+  return has;
+}
+
+// One row per collectible; shop locations expand into one row per purchase.
+const ROWS = HK.locs.flatMap((l, i) => l.sub
+  ? l.sub.map(([name, tr]) => ({ loc: i, g: l.g, a: l.a, name: name.replace(/_/g, " "), place: l.n.replace(/_/g, " "), tr }))
+  : [{ loc: i, g: l.g, a: l.a, name: pretty(l.n), tr: l.t }]);
+let got = null; // Set of row indexes collected, null before a save is loaded
+const shown = new Set(Object.keys(GROUPS).filter(g => !HIDDEN_BY_DEFAULT.has(g)));
+const open = new Set();
+
+// Map: CRS.Simple over the stitched map image, y grows downward in data so flip it.
+const [W, H] = HK.size;
+const map = L.map("map", { crs: L.CRS.Simple, minZoom: -3, maxZoom: 1, zoomSnap: 0.25, preferCanvas: true, attributionControl: false });
+const bounds = [[-H, 0], [0, W]];
+L.imageOverlay("map.webp", bounds).addTo(map);
+map.fitBounds(bounds);
+map.setMaxBounds(L.latLngBounds(bounds).pad(0.2));
+const markers = HK.locs.map(l => L.circleMarker([-l.y, l.x], { radius: 6, weight: 2 }));
+const layer = L.layerGroup().addTo(map);
+
+function locState(i) {
+  const rows = ROWS.map((r, k) => [r, k]).filter(([r]) => r.loc === i);
+  const n = got ? rows.filter(([, k]) => got.has(k)).length : 0;
+  return { rows, missing: rows.length - n, done: got && n === rows.length };
+}
+
+function popup(i) {
+  const l = HK.locs[i], { rows } = locState(i);
+  if (!l.sub) return `<h4>${esc(pretty(l.n))}</h4><p>${esc(gname(l.g))}, ${esc(l.a)}</p>`;
+  return `<h4>${esc(l.n.replace(/_/g, " "))}</h4><p>${esc(l.a)}</p><ul>${rows.map(([r, k]) =>
+    `<li class="${got && got.has(k) ? "got" : ""}">${esc(r.name)}</li>`).join("")}</ul>`;
+}
+
+function drawMap() {
+  layer.clearLayers();
+  const showGot = document.getElementById("showGot").checked;
+  HK.locs.forEach((l, i) => {
+    if (!shown.has(l.g)) return;
+    const s = locState(i);
+    if (s.done && !showGot) return;
+    const m = markers[i];
+    m.setStyle(s.done
+      ? { color: "#4a5568", fillColor: "#1b2333", fillOpacity: 1, radius: 4 }
+      : got ? { color: "#0b0f17", fillColor: "#f0b45a", fillOpacity: 1, radius: 6 }
+            : { color: "#0b0f17", fillColor: "#e8e6df", fillOpacity: .9, radius: 5 });
+    m.unbindTooltip().bindTooltip(l.sub ? l.n.replace(/_/g, " ") : pretty(l.n), { direction: "top", offset: [0, -6] });
+    m.unbindPopup().bindPopup(() => popup(i));
+    m.addTo(layer);
+  });
+}
+
+function drawList() {
+  const showGot = document.getElementById("showGot").checked;
+  const groups = Object.keys(GROUPS).map(g => {
+    const rows = ROWS.map((r, k) => [r, k]).filter(([r]) => r.g === g);
+    const n = got ? rows.filter(([, k]) => got.has(k)).length : 0;
+    const list = rows.filter(([, k]) => showGot || !got || !got.has(k));
+    const areas = {};
+    for (const [r, k] of list) (areas[r.a] ??= []).push([r, k]);
+    const body = Object.entries(areas).map(([a, rs]) => `<div class="area">${esc(a)}</div>${rs.map(([r, k]) =>
+      `<li><button type="button" data-loc="${r.loc}">${esc(r.name)}${r.place ? ` <small>${esc(t("inShop", r.place))}</small>` : ""}</button></li>`).join("")}`).join("");
+    return `<details class="cat${got && n === rows.length ? " done" : ""}" data-g="${g}"${open.has(g) ? " open" : ""}>
+      <summary><input type="checkbox" data-g="${g}" ${shown.has(g) ? "checked" : ""} aria-label="${esc(gname(g))}">
+        <span>${esc(gname(g))}</span><span class="n">${got ? `${n} / ` : ""}${rows.length}</span>
+        ${got ? `<span class="bar"><i style="width:${100 * n / rows.length}%"></i></span>` : ""}</summary>
+      <ul>${body}</ul></details>`;
+  });
+  document.getElementById("cats").innerHTML = groups.join("");
+  const n = got ? got.size : 0;
+  document.getElementById("total").textContent = got ? t("found", n, ROWS.length) : t("total", ROWS.length);
+}
+
+function render() { drawMap(); drawList(); }
+
+document.getElementById("cats").addEventListener("click", e => {
+  const box = e.target.closest("input[data-g]");
+  if (box) {
+    e.stopPropagation();
+    box.checked ? shown.add(box.dataset.g) : shown.delete(box.dataset.g);
+    drawMap();
+    return;
+  }
+  const btn = e.target.closest("button[data-loc]");
+  if (btn) {
+    const i = +btn.dataset.loc, l = HK.locs[i];
+    shown.add(l.g);
+    drawMap();
+    map.flyTo([-l.y, l.x], 1, { duration: .6 });
+    markers[i].openPopup();
+    document.getElementById("map").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+});
+document.getElementById("cats").addEventListener("toggle", e => {
+  const g = e.target.dataset.g;
+  if (g) e.target.open ? open.add(g) : open.delete(g);
+}, true);
+document.getElementById("showGot").onchange = render;
+
+async function load(file) {
+  const err = document.getElementById("err");
+  err.textContent = "";
+  try {
+    const has = checker(parseSave(await file.arrayBuffer()));
+    got = new Set(ROWS.map((r, k) => has(r.tr) ? k : -1).filter(k => k >= 0));
+    render();
+  } catch (e) {
+    err.textContent = e instanceof SyntaxError || e instanceof TypeError ? t("notSave") : e.message;
+  }
+}
+document.getElementById("file").onchange = e => e.target.files[0] && load(e.target.files[0]);
+document.addEventListener("dragover", e => e.preventDefault());
+document.addEventListener("drop", e => { e.preventDefault(); e.dataTransfer.files[0] && load(e.dataTransfer.files[0]); });
+document.getElementById("cp").onclick = e => {
+  navigator.clipboard?.writeText(document.getElementById("p").textContent);
+  e.target.textContent = t("copied");
+};
+I18N.init(STRINGS, () => { document.getElementById("err").textContent = ""; render(); });
+</script>
+</body>
+</html>
