@@ -32,6 +32,8 @@ main{max-width:1040px;margin:0 auto;padding:72px 16px 80px;position:relative}
 .lang button[aria-pressed=true]{color:var(--ink);background:rgba(255,255,255,.08)}
 :focus-visible{outline:2px solid var(--ink);outline-offset:4px}
 h1{font:800 clamp(44px,8vw,88px)/.95 var(--display);letter-spacing:-.03em;margin:0 0 20px;max-width:9em}
+h1{display:flex;align-items:flex-start;gap:.22em}
+h1 .logo{width:.9em;height:.9em;flex:none;margin-top:.03em}
 .lede{font-size:19px;color:#c8c8d0;max-width:32em;margin:0 0 56px}
 h2{font:500 15px var(--body);color:var(--dim);margin:0 0 16px}
 .shelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
@@ -78,7 +80,7 @@ footer a{color:var(--dim)}
 <body>
 <main>
 <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="it">IT</button><button type="button" data-lang="en">EN</button></div>
-<h1>Game Completion Tool</h1>
+<h1><img class="logo" src="favicon.svg" alt="" width="80" height="80"><span>Game Completion Tool</span></h1>
 <p class="lede" data-i18n="lede"></p>
 
 <h2 data-i18n="games"></h2>
