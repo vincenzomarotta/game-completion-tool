@@ -1,9 +1,9 @@
-// Shared IT/EN switch. Uses the saved choice, else the browser language.
+// Shared IT/EN switch. English by default; the visitor's choice is remembered.
 // Pages call I18N.init(strings, onChange); elements with data-i18n get their text from strings[lang].
 const I18N = (() => {
   let lang;
   try { lang = localStorage.getItem("lang"); } catch {}
-  if (lang !== "it" && lang !== "en") lang = (navigator.language || "").startsWith("it") ? "it" : "en";
+  if (lang !== "it" && lang !== "en") lang = "en";
   let dict = {}, onChange = () => {};
 
   const t = (key, ...args) => {

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="it">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -70,6 +70,38 @@ aside{background:var(--deep);border:1px solid var(--line);border-radius:10px;hei
 .cat li button:hover{color:var(--amber)}
 .cat li small{color:var(--dim)}
 .cat .area{font-size:12px;color:var(--dim);margin:8px 0 2px;font-style:italic}
+.tabs{max-width:1400px;margin:0 auto 14px;padding:0 16px;display:flex;gap:4px}
+.tabs button{font:500 16px var(--body);color:var(--dim);background:none;border:0;border-bottom:2px solid transparent;padding:6px 14px;cursor:pointer}
+.tabs button[aria-selected=true]{color:var(--soul);border-bottom-color:var(--amber)}
+.app[hidden],.journal[hidden]{display:none}
+.pin{transition:opacity .15s}
+.pin.miss{filter:drop-shadow(0 0 4px rgba(240,180,90,.9))}
+.pin.got{opacity:.35;filter:grayscale(1)}
+.cat summary{grid-template-columns:20px 22px 1fr auto}
+.cat summary img{width:22px;height:22px}
+.cat .bar{grid-column:3/-1}
+.cat ul{padding-left:58px}
+
+.journal{max-width:1400px;margin:0 auto;padding:0 16px 48px}
+.jhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:16px}
+.jhead h2{font:500 20px var(--body);margin:0}
+.jhead p{margin:4px 0 0;color:var(--dim);font-size:14px}
+.filters{display:flex;gap:4px}
+.filters button{font:500 14px var(--body);color:var(--dim);background:var(--deep);border:1px solid var(--line);border-radius:999px;padding:5px 12px;cursor:pointer}
+.filters button[aria-pressed=true]{color:var(--abyss);background:var(--soul);border-color:var(--soul)}
+.beasts{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.beast{background:var(--deep);border:1px solid var(--line);border-radius:8px;padding:10px;display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center}
+.beast .face{width:64px;height:64px;background-repeat:no-repeat}
+.beast.unseen .face{filter:brightness(0) drop-shadow(0 0 1px rgba(232,230,223,.5))}
+.beast.done{border-color:rgba(244,241,232,.35)}
+.beast h3{font:500 15px/1.2 var(--body);margin:0}
+.beast p{margin:2px 0 0;font-size:13px;color:var(--dim)}
+.beast .st{color:var(--amber)}
+.beast.done .st{color:var(--soul)}
+.beast a{color:var(--dim)}
+.beast .kbar{height:2px;background:var(--line);margin-top:6px}
+.beast .kbar i{display:block;height:100%;background:var(--amber)}
+
 footer{max-width:1400px;margin:0 auto;padding:0 16px 32px;font-size:13px;color:var(--dim)}
 
 @media (max-width:900px){
@@ -99,7 +131,12 @@ footer{max-width:1400px;margin:0 auto;padding:0 16px 32px;font-size:13px;color:v
   </div>
 </header>
 
-<main class="app">
+<nav class="tabs" role="tablist">
+  <button type="button" role="tab" data-tab="map" aria-selected="true" data-i18n="tabMap"></button>
+  <button type="button" role="tab" data-tab="journal" aria-selected="false" data-i18n="tabJournal"></button>
+</nav>
+
+<main class="app" id="tab-map">
   <div id="map"></div>
   <aside>
     <div class="summary">
@@ -110,12 +147,25 @@ footer{max-width:1400px;margin:0 auto;padding:0 16px 32px;font-size:13px;color:v
   </aside>
 </main>
 
+<section class="journal" id="tab-journal" hidden>
+  <div class="jhead">
+    <div><h2 id="jtotal"></h2><p data-i18n="jHint"></p></div>
+    <div class="filters" role="group">
+      <button type="button" data-f="all" aria-pressed="true" data-i18n="fAll"></button>
+      <button type="button" data-f="todo" aria-pressed="false" data-i18n="fTodo"></button>
+      <button type="button" data-f="done" aria-pressed="false" data-i18n="fDone"></button>
+    </div>
+  </div>
+  <ul class="beasts" id="beasts"></ul>
+</section>
+
 <footer data-i18n="footer"></footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/aes-js/3.1.2/index.min.js"></script>
 <script src="../i18n.js"></script>
 <script src="data.js"></script>
+<script src="bestiary.js"></script>
 <script>
 const STRINGS = {
   it: {
@@ -126,6 +176,12 @@ const STRINGS = {
     footer: 'Posizioni e regole del salvataggio da <a href="https://github.com/syyePhenomenol/MapChanger">MapChanger</a> e <a href="https://github.com/homothetyhk/RandomizerMod">RandomizerMod</a>. Mappa di Team Cherry. Progetto amatoriale, non affiliato con Team Cherry.',
     notSave: "Questo file non è un salvataggio di Hollow Knight. Scegli user1.dat (o user2-4.dat) dalla cartella dei salvataggi.",
     total: n => `${n} posizioni`, found: (g, n) => `${g} di ${n} trovati`, inShop: s => `Da ${s}`,
+    tabMap: "Mappa", tabJournal: "Diario del Cacciatore",
+    jHint: "Le voci mai incontrate sono in silhouette. Il numero è quante uccisioni mancano per sbloccare le note del Cacciatore.",
+    fAll: "Tutte", fTodo: "Da completare", fDone: "Complete",
+    jTotal: (seen, done, n) => `${seen} di ${n} incontrati, ${done} completati`, jTotalNoSave: n => `${n} voci`,
+    unseen: "Mai incontrato", left: n => `${n === 1 ? "Manca 1 uccisione" : `Mancano ${n} uccisioni`}`, complete: "Completo",
+    needs: n => n > 1 ? `${n} uccisioni` : "1 uccisione", wiki: "wiki",
   },
   en: {
     back: "All games", load: "Load user1.dat",
@@ -135,6 +191,12 @@ const STRINGS = {
     footer: 'Locations and save rules from <a href="https://github.com/syyePhenomenol/MapChanger">MapChanger</a> and <a href="https://github.com/homothetyhk/RandomizerMod">RandomizerMod</a>. Map by Team Cherry. Fan project, not affiliated with Team Cherry.',
     notSave: "This isn't a Hollow Knight save. Pick user1.dat (or user2-4.dat) from the saves folder.",
     total: n => `${n} locations`, found: (g, n) => `${g} of ${n} found`, inShop: s => `From ${s}`,
+    tabMap: "Map", tabJournal: "Hunter's Journal",
+    jHint: "Entries you've never met are shown as silhouettes. The number is how many kills are left to unlock the Hunter's notes.",
+    fAll: "All", fTodo: "To complete", fDone: "Complete",
+    jTotal: (seen, done, n) => `${seen} of ${n} encountered, ${done} completed`, jTotalNoSave: n => `${n} entries`,
+    unseen: "Never encountered", left: n => `${n} kill${n === 1 ? "" : "s"} left`, complete: "Complete",
+    needs: n => `${n} kill${n === 1 ? "" : "s"}`, wiki: "wiki",
   },
 };
 // [it, en]; order is the sidebar order, completion-relevant first
@@ -150,6 +212,15 @@ const GROUPS = {
   GeoRocks: ["Rocce di geo", "Geo rocks"],
 };
 const HIDDEN_BY_DEFAULT = new Set(["GeoRocks"]);
+// Pin art from MapChanger (GPL-3.0), one per category.
+const PIN = {
+  MaskShards: "Mask", VesselFragments: "Vessel", CharmNotches: "Notch", PaleOre: "Ore", Charms: "Charm", Skills: "Skill",
+  Dreamers: "Dreamer", Grubs: "Grub", WhisperingRoots: "Root", Shops: "Shop", Maps: "Map", Stags: "Stag", Keys: "Key",
+  Relics: "Relic", RancidEggs: "Egg", BossEssence: "EssenceBoss", GrimmkinFlames: "Flame", JournalEntries: "Journal",
+  GeoChests: "Geo", BossGeo: "Geo", Mimics: "UnknownGrub", GeoRocks: "Rock",
+};
+const icons = {};
+const pinIcon = (g, state) => icons[g + state] ??= L.icon({ iconUrl: `pins/${PIN[g]}.png`, iconSize: [30, 30], className: `pin ${state}` });
 const t = I18N.t;
 const gname = g => GROUPS[g][I18N.lang === "en" ? 1 : 0];
 const pretty = s => s.replace(/^[^-]+-/, "").replace(/_/g, " ");
@@ -198,12 +269,12 @@ const open = new Set();
 
 // Map: CRS.Simple over the stitched map image, y grows downward in data so flip it.
 const [W, H] = HK.size;
-const map = L.map("map", { crs: L.CRS.Simple, minZoom: -3, maxZoom: 1, zoomSnap: 0.25, preferCanvas: true, attributionControl: false });
+const map = L.map("map", { crs: L.CRS.Simple, minZoom: -3, maxZoom: 1, zoomSnap: 0.25, attributionControl: false });
 const bounds = [[-H, 0], [0, W]];
 L.imageOverlay("map.webp", bounds).addTo(map);
 map.fitBounds(bounds);
 map.setMaxBounds(L.latLngBounds(bounds).pad(0.2));
-const markers = HK.locs.map(l => L.circleMarker([-l.y, l.x], { radius: 6, weight: 2 }));
+const markers = HK.locs.map(l => L.marker([-l.y, l.x], { icon: pinIcon(l.g, "") }));
 const layer = L.layerGroup().addTo(map);
 
 function locState(i) {
@@ -227,11 +298,9 @@ function drawMap() {
     const s = locState(i);
     if (s.done && !showGot) return;
     const m = markers[i];
-    m.setStyle(s.done
-      ? { color: "#4a5568", fillColor: "#1b2333", fillOpacity: 1, radius: 4 }
-      : got ? { color: "#0b0f17", fillColor: "#f0b45a", fillOpacity: 1, radius: 6 }
-            : { color: "#0b0f17", fillColor: "#e8e6df", fillOpacity: .9, radius: 5 });
-    m.unbindTooltip().bindTooltip(l.sub ? l.n.replace(/_/g, " ") : pretty(l.n), { direction: "top", offset: [0, -6] });
+    m.setIcon(pinIcon(l.g, s.done ? "got" : got ? "miss" : ""));
+    m.setZIndexOffset(s.done ? -1000 : 0);
+    m.unbindTooltip().bindTooltip(l.sub ? l.n.replace(/_/g, " ") : pretty(l.n), { direction: "top", offset: [0, -14] });
     m.unbindPopup().bindPopup(() => popup(i));
     m.addTo(layer);
   });
@@ -248,7 +317,7 @@ function drawList() {
     const body = Object.entries(areas).map(([a, rs]) => `<div class="area">${esc(a)}</div>${rs.map(([r, k]) =>
       `<li><button type="button" data-loc="${r.loc}">${esc(r.name)}${r.place ? ` <small>${esc(t("inShop", r.place))}</small>` : ""}</button></li>`).join("")}`).join("");
     return `<details class="cat${got && n === rows.length ? " done" : ""}" data-g="${g}"${open.has(g) ? " open" : ""}>
-      <summary><input type="checkbox" data-g="${g}" ${shown.has(g) ? "checked" : ""} aria-label="${esc(gname(g))}">
+      <summary><input type="checkbox" data-g="${g}" ${shown.has(g) ? "checked" : ""} aria-label="${esc(gname(g))}"><img src="pins/${PIN[g]}.png" alt="">
         <span>${esc(gname(g))}</span><span class="n">${got ? `${n} / ` : ""}${rows.length}</span>
         ${got ? `<span class="bar"><i style="width:${100 * n / rows.length}%"></i></span>` : ""}</summary>
       <ul>${body}</ul></details>`;
@@ -258,7 +327,48 @@ function drawList() {
   document.getElementById("total").textContent = got ? t("found", n, ROWS.length) : t("total", ROWS.length);
 }
 
-function render() { drawMap(); drawList(); }
+let pd = null, filter = "all";
+function drawJournal() {
+  const B = HK_BESTIARY, lang = I18N.lang;
+  const stat = e => {
+    if (!pd) return { cls: "", text: t("needs", Math.max(e.k, 1)) };
+    if (!pd["killed" + e.id]) return { cls: "unseen", text: t("unseen") };
+    const left = pd["kills" + e.id] || 0;
+    return left > 0 ? { cls: "", text: t("left", left), pct: 100 * (e.k - left) / e.k } : { cls: "done", text: t("complete") };
+  };
+  const rows = B.entries.map((e, i) => [e, i, stat(e)]);
+  const seen = rows.filter(([, , s]) => s.cls !== "unseen").length, done = rows.filter(([, , s]) => s.cls === "done").length;
+  document.getElementById("jtotal").textContent = pd ? t("jTotal", seen, done, rows.length) : t("jTotalNoSave", rows.length);
+  document.getElementById("beasts").innerHTML = rows
+    .filter(([, , s]) => filter === "all" || !pd || (filter === "done") === (s.cls === "done"))
+    .map(([e, i, s]) => {
+      const pos = `-${(i % B.cols) * B.cell * .667}px -${Math.floor(i / B.cols) * B.cell * .667}px`;
+      const size = `${B.cols * B.cell * .667}px auto`;
+      return `<li class="beast ${s.cls}">
+        <div class="face" style="background-image:url(bestiary.webp);background-position:${pos};background-size:${size}" role="img" aria-label="${esc(e[lang] || e.en)}"></div>
+        <div><h3>${esc(e[lang] || e.en)}</h3><p class="st">${esc(s.text)}</p>
+          <p>${esc(e.a)}${e.w ? ` <a href="https://hollowknight.wiki/w/${encodeURIComponent(e.w)}" target="_blank" rel="noopener">${t("wiki")}</a>` : ""}</p>
+          ${s.pct !== undefined ? `<div class="kbar"><i style="width:${s.pct}%"></i></div>` : ""}</div></li>`;
+    }).join("");
+}
+
+function render() { drawMap(); drawList(); drawJournal(); }
+
+document.querySelector(".tabs").addEventListener("click", e => {
+  const b = e.target.closest("[data-tab]");
+  if (!b) return;
+  document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-selected", x === b));
+  document.getElementById("tab-map").hidden = b.dataset.tab !== "map";
+  document.getElementById("tab-journal").hidden = b.dataset.tab !== "journal";
+  if (b.dataset.tab === "map") map.invalidateSize();
+});
+document.querySelector(".filters").addEventListener("click", e => {
+  const b = e.target.closest("[data-f]");
+  if (!b) return;
+  filter = b.dataset.f;
+  document.querySelectorAll(".filters button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  drawJournal();
+});
 
 document.getElementById("cats").addEventListener("click", e => {
   const box = e.target.closest("input[data-g]");
@@ -288,7 +398,9 @@ async function load(file) {
   const err = document.getElementById("err");
   err.textContent = "";
   try {
-    const has = checker(parseSave(await file.arrayBuffer()));
+    const save = parseSave(await file.arrayBuffer());
+    const has = checker(save);
+    pd = save.playerData;
     got = new Set(ROWS.map((r, k) => has(r.tr) ? k : -1).filter(k => k >= 0));
     render();
   } catch (e) {
