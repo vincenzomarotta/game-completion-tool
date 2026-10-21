@@ -10,86 +10,111 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <style>
 :root{
-  --abyss:#0b0f17; --deep:#121826; --ink:#1b2333; --line:#2a3447;
-  --bone:#e8e6df; --dim:#8a93a6; --soul:#f4f1e8; --amber:#f0b45a; --got:#4a5568;
+  --abyss:#07090d; --deep:#0f141d; --ink:#171e2a; --line:#262f40;
+  --bone:#e8e6df; --dim:#8a93a6; --soul:#f4f1e8; --amber:#f0b45a;
   --display:"Cinzel",Georgia,serif; --body:"Alegreya Sans",system-ui,sans-serif;
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--abyss);color:var(--bone);font:16px/1.5 var(--body)}
+html,body{height:100%}
+body{margin:0;background:var(--abyss);color:var(--bone);font:15px/1.45 var(--body);display:flex;flex-direction:column}
 :focus-visible{outline:2px solid var(--soul);outline-offset:2px}
 a{color:inherit}
-header{max-width:1400px;margin:0 auto;padding:18px 16px 20px;display:grid;grid-template-columns:1fr auto;gap:8px 24px;align-items:end}
-.top{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center}
-.back{color:var(--dim);font-size:15px;text-underline-offset:3px}
+button{font-family:inherit}
+
+/* top bar */
+.bar{display:flex;align-items:center;gap:16px;padding:8px 14px;border-bottom:1px solid var(--line);background:var(--deep);flex-wrap:wrap}
+.bar h1{font:400 22px/1 var(--display);letter-spacing:.08em;margin:0;white-space:nowrap}
+.bar .back{color:var(--dim);font-size:14px;text-underline-offset:3px}
+.tabs{display:flex;gap:2px;margin-left:8px}
+.tabs button{font-size:15px;color:var(--dim);background:none;border:0;border-bottom:2px solid transparent;padding:6px 12px;cursor:pointer}
+.tabs button[aria-selected=true]{color:var(--soul);border-bottom-color:var(--amber)}
+.bar .sp{flex:1}
 .lang{display:flex;gap:2px}
-.lang button{font:500 14px var(--body);color:var(--dim);background:none;border:0;padding:4px 8px;cursor:pointer;border-radius:4px}
+.lang button{font-size:13px;color:var(--dim);background:none;border:0;padding:4px 8px;cursor:pointer;border-radius:4px}
 .lang button[aria-pressed=true]{color:var(--bone);background:rgba(255,255,255,.08)}
-h1{font:400 clamp(30px,4.6vw,52px)/1.05 var(--display);letter-spacing:.06em;margin:8px 0 6px}
-.lede{margin:0;color:#c3c6cf;max-width:44em}
-.load{display:flex;flex-direction:column;align-items:flex-start;gap:6px;width:340px}
-.btn{display:inline-block;font:600 15px var(--body);color:var(--abyss);background:var(--soul);border-radius:999px;padding:10px 20px;cursor:pointer;white-space:nowrap}
+
+/* map view: sidebar left, map right */
+.view{flex:1;min-height:0;display:grid;grid-template-columns:340px 1fr}
+.view[hidden]{display:none}
+aside{background:var(--deep);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.side-top{padding:14px;border-bottom:1px solid var(--line);display:grid;gap:10px}
+.btn{display:block;text-align:center;font-weight:700;font-size:15px;color:var(--abyss);background:var(--soul);border-radius:6px;padding:9px 14px;cursor:pointer}
 .btn:hover{background:#fff}
 .btn input{position:absolute;opacity:0;width:1px;height:1px}
-.path{font-size:13px;color:var(--dim);margin:0}
-.path code{font:13px var(--body);color:var(--bone);background:var(--ink);padding:1px 6px;border-radius:3px;word-break:break-all}
-.path button{font:inherit;background:none;border:0;color:var(--soul);text-decoration:underline;cursor:pointer;padding:0 2px}
-#err{color:var(--amber);font-size:14px;min-height:1.2em}
+.path{font-size:12px;color:var(--dim);margin:0}
+.path code{font:12px var(--body);color:var(--bone);background:var(--ink);padding:1px 5px;border-radius:3px;word-break:break-all}
+.path button{background:none;border:0;color:var(--soul);text-decoration:underline;cursor:pointer;padding:0 2px;font-size:12px}
+#err{color:var(--amber);font-size:13px}
+#err:empty{display:none}
+.progress h2{font:500 17px var(--body);margin:0}
+.progress .pbar{height:4px;background:var(--line);margin-top:6px;border-radius:2px;overflow:hidden}
+.progress .pbar i{display:block;height:100%;background:var(--amber)}
+.search{display:flex;gap:6px}
+.search input{flex:1;min-width:0;font:inherit;color:var(--bone);background:var(--ink);border:1px solid var(--line);border-radius:6px;padding:7px 10px}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.chip{font-size:13px;color:var(--bone);background:var(--ink);border:1px solid var(--line);border-radius:6px;padding:5px 10px;cursor:pointer}
+.chip:hover{border-color:var(--dim)}
+.toggle{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--dim);cursor:pointer}
 
-.app{max-width:1400px;margin:0 auto;padding:0 16px 48px;display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:16px}
-#map{height:min(76vh,820px);border-radius:10px;background:var(--abyss);border:1px solid var(--line)}
-.leaflet-container{font:14px var(--body)}
-.leaflet-image-layer{filter:brightness(1.3) saturate(1.1)}
-.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--ink);color:var(--bone);box-shadow:0 4px 18px rgba(0,0,0,.6)}
-.leaflet-popup-content{margin:12px 14px}
-.leaflet-popup-content h4{font:600 16px var(--body);margin:0 0 2px}
-.leaflet-popup-content p{margin:0;color:var(--dim)}
+.cats{overflow:auto;flex:1;padding:6px 0 20px}
+.grp{font:400 13px var(--display);letter-spacing:.12em;color:var(--dim);padding:12px 14px 4px}
+.cat summary{list-style:none;display:grid;grid-template-columns:28px 1fr auto;gap:8px;align-items:center;padding:5px 14px;cursor:pointer}
+.cat summary::-webkit-details-marker{display:none}
+.cat summary:hover{background:rgba(255,255,255,.03)}
+.cat .ico{width:26px;height:26px;border-radius:50%;background:var(--c);display:grid;place-items:center;border:0;padding:0;cursor:pointer}
+.cat .ico img{width:20px;height:20px;object-fit:contain}
+.cat.off .ico{filter:grayscale(1);opacity:.35}
+.cat.off .nm{color:var(--dim)}
+.cat .n{color:var(--dim);font-size:13px;font-variant-numeric:tabular-nums}
+.cat.done .n{color:var(--amber)}
+.cat ul{list-style:none;margin:0;padding:0 14px 8px 50px}
+.cat li button{font-size:14px;color:var(--bone);background:none;border:0;padding:2px 0;cursor:pointer;text-align:left}
+.cat li button:hover{color:var(--amber)}
+.cat li.got button{color:var(--dim);text-decoration:line-through}
+.cat li small{color:var(--dim)}
+.cat .area{font-size:12px;color:var(--dim);margin:6px 0 1px;font-style:italic}
+
+#map{min-height:0;background:#000}
+.leaflet-container{font:14px var(--body);background:#000}
+.leaflet-image-layer{filter:brightness(1.3)}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--ink);color:var(--bone);box-shadow:0 4px 18px rgba(0,0,0,.7)}
+.leaflet-popup-content{margin:12px 14px;min-width:200px}
+.leaflet-popup-content h4{font:600 16px var(--body);margin:0}
+.leaflet-popup-content .meta{margin:2px 0 6px;color:var(--dim);font-size:13px}
 .leaflet-popup-content ul{margin:6px 0 0;padding-left:16px}
 .leaflet-popup-content li.got{color:var(--dim);text-decoration:line-through}
+.leaflet-popup-content .st{color:var(--amber)}
+.leaflet-popup-content .st.done{color:var(--soul)}
 .leaflet-container a.leaflet-popup-close-button{color:var(--dim)}
 .leaflet-bar a{background:var(--ink);color:var(--bone);border-color:var(--line)}
 .leaflet-bar a:hover{background:var(--line)}
-.leaflet-control-attribution{background:rgba(11,15,23,.7)!important;color:var(--dim)}
-.leaflet-tooltip{background:var(--ink);color:var(--bone);border-color:var(--line)}
+.leaflet-tooltip{background:var(--ink);color:var(--bone);border:1px solid var(--line);box-shadow:none}
 
-aside{background:var(--deep);border:1px solid var(--line);border-radius:10px;height:min(76vh,820px);display:flex;flex-direction:column;overflow:hidden}
-.summary{padding:14px 16px;border-bottom:1px solid var(--line)}
-.summary h2{font:500 20px var(--body);margin:0}
-.summary label{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--dim);margin-top:8px;cursor:pointer}
-.cats{overflow:auto;padding:6px 0}
-.cat{border-bottom:1px solid rgba(42,52,71,.6)}
-.cat summary{list-style:none;display:grid;grid-template-columns:20px 1fr auto;gap:8px;align-items:center;padding:8px 16px;cursor:pointer}
-.cat summary::-webkit-details-marker{display:none}
-.cat summary input{accent-color:var(--amber);margin:0}
-.cat .n{color:var(--dim);font-size:14px;font-variant-numeric:tabular-nums}
-.cat.done .n{color:var(--soul)}
-.cat .bar{grid-column:2/-1;height:2px;background:var(--line)}
-.cat .bar i{display:block;height:100%;background:var(--amber)}
-.cat.done .bar i{background:var(--soul)}
-.cat ul{list-style:none;margin:0;padding:0 16px 10px 44px}
-.cat li button{font:inherit;font-size:14px;color:var(--bone);background:none;border:0;padding:2px 0;cursor:pointer;text-align:left}
-.cat li button:hover{color:var(--amber)}
-.cat li small{color:var(--dim)}
-.cat .area{font-size:12px;color:var(--dim);margin:8px 0 2px;font-style:italic}
-.tabs{max-width:1400px;margin:0 auto 14px;padding:0 16px;display:flex;gap:4px}
-.tabs button{font:500 16px var(--body);color:var(--dim);background:none;border:0;border-bottom:2px solid transparent;padding:6px 14px;cursor:pointer}
-.tabs button[aria-selected=true]{color:var(--soul);border-bottom-color:var(--amber)}
-.app[hidden],.journal[hidden]{display:none}
-.pin{transition:opacity .15s}
-.pin.miss{filter:drop-shadow(0 0 4px rgba(240,180,90,.9))}
-.pin.got{opacity:.35;filter:grayscale(1)}
-.cat summary{grid-template-columns:20px 22px 1fr auto}
-.cat summary img{width:22px;height:22px}
-.cat .bar{grid-column:3/-1}
-.cat ul{padding-left:58px}
+/* teardrop markers */
+.mk{width:32px;height:32px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--c);border:2px solid rgba(0,0,0,.55);box-shadow:0 2px 6px rgba(0,0,0,.6);display:grid;place-items:center}
+.mk > *{transform:rotate(45deg)}
+.mk img{width:22px;height:22px;object-fit:contain}
+.mk .face{width:24px;height:24px;border-radius:50%;background-repeat:no-repeat;background-color:rgba(0,0,0,.25)}
+.mk.got{background:#3a4150;opacity:.55}
+.mk.got img,.mk.got .face{filter:grayscale(1)}
+.mk.hit{box-shadow:0 0 0 3px var(--amber),0 2px 6px rgba(0,0,0,.6)}
 
-.journal{max-width:1400px;margin:0 auto;padding:0 16px 48px}
-.jhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:16px}
-.jhead h2{font:500 20px var(--body);margin:0}
+/* map labels */
+.lbl{white-space:nowrap;text-align:center;pointer-events:none;color:#f1efe7;text-shadow:0 0 4px #000,0 0 8px #000,0 0 2px #000}
+.lbl.area{font:400 var(--fa,22px)/1 var(--display);letter-spacing:.06em}
+.lbl.sub{font:400 var(--fs,15px)/1 var(--display);color:#d9d4c5}
+.zoom-far .lbl.sub{display:none}
+
+/* journal grid */
+.journal{flex:1;overflow:auto;padding:16px}
+.journal[hidden]{display:none}
+.jhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:14px}
+.jhead h2{font:500 19px var(--body);margin:0}
 .jhead p{margin:4px 0 0;color:var(--dim);font-size:14px}
 .filters{display:flex;gap:4px}
-.filters button{font:500 14px var(--body);color:var(--dim);background:var(--deep);border:1px solid var(--line);border-radius:999px;padding:5px 12px;cursor:pointer}
+.filters button{font-size:14px;color:var(--dim);background:var(--deep);border:1px solid var(--line);border-radius:999px;padding:5px 12px;cursor:pointer}
 .filters button[aria-pressed=true]{color:var(--abyss);background:var(--soul);border-color:var(--soul)}
-.beasts{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.beasts{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
 .beast{background:var(--deep);border:1px solid var(--line);border-radius:8px;padding:10px;display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center}
 .beast .face{width:64px;height:64px;background-repeat:no-repeat}
 .beast.unseen .face{filter:brightness(0) drop-shadow(0 0 1px rgba(232,230,223,.5))}
@@ -98,54 +123,50 @@ aside{background:var(--deep);border:1px solid var(--line);border-radius:10px;hei
 .beast p{margin:2px 0 0;font-size:13px;color:var(--dim)}
 .beast .st{color:var(--amber)}
 .beast.done .st{color:var(--soul)}
-.beast a{color:var(--dim)}
+.beast a,.beast button.onmap{color:var(--dim);font-size:13px;background:none;border:0;padding:0;cursor:pointer;text-decoration:underline}
 .beast .kbar{height:2px;background:var(--line);margin-top:6px}
 .beast .kbar i{display:block;height:100%;background:var(--amber)}
+footer{font-size:12px;color:var(--dim);padding:6px 14px;border-top:1px solid var(--line);background:var(--deep)}
 
-footer{max-width:1400px;margin:0 auto;padding:0 16px 32px;font-size:13px;color:var(--dim)}
-
-@media (max-width:900px){
-  header{grid-template-columns:1fr}
-  .load{width:auto}
-  .app{grid-template-columns:1fr}
-  #map{height:62vh}
-  aside{height:auto;max-height:none}
+@media (max-width:820px){
+  .view{grid-template-columns:1fr;grid-template-rows:auto 60vh}
+  aside{max-height:none;border-right:0;border-bottom:1px solid var(--line);order:2}
+  #map{order:1;height:60vh}
+  .cats{max-height:50vh}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
-<header>
-  <div class="top">
-    <a class="back" href="../" data-i18n="back">Tutti i giochi</a>
-    <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="it">IT</button><button type="button" data-lang="en">EN</button></div>
-  </div>
-  <div>
-    <h1>Hollow Knight</h1>
-    <p class="lede" data-i18n="lede"></p>
-  </div>
-  <div class="load">
-    <label class="btn"><input type="file" id="file" accept=".dat"><span data-i18n="load"></span></label>
-    <p class="path"><span data-i18n="pathA"></span> <code id="p">%USERPROFILE%\AppData\LocalLow\Team Cherry\Hollow Knight</code><button id="cp" type="button" data-i18n="copy"></button></p>
-    <div id="err" role="alert"></div>
-  </div>
-</header>
+<div class="bar">
+  <a class="back" href="../" data-i18n="back">All games</a>
+  <h1>Hollow Knight</h1>
+  <nav class="tabs" role="tablist">
+    <button type="button" role="tab" data-tab="map" aria-selected="true" data-i18n="tabMap"></button>
+    <button type="button" role="tab" data-tab="journal" aria-selected="false" data-i18n="tabJournal"></button>
+  </nav>
+  <span class="sp"></span>
+  <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="it">IT</button><button type="button" data-lang="en">EN</button></div>
+</div>
 
-<nav class="tabs" role="tablist">
-  <button type="button" role="tab" data-tab="map" aria-selected="true" data-i18n="tabMap"></button>
-  <button type="button" role="tab" data-tab="journal" aria-selected="false" data-i18n="tabJournal"></button>
-</nav>
-
-<main class="app" id="tab-map">
-  <div id="map"></div>
+<div class="view" id="tab-map">
   <aside>
-    <div class="summary">
-      <h2 id="total"></h2>
-      <label><input type="checkbox" id="showGot"> <span data-i18n="showGot"></span></label>
+    <div class="side-top">
+      <label class="btn"><input type="file" id="file" accept=".dat"><span data-i18n="load"></span></label>
+      <p class="path"><span data-i18n="pathA"></span> <code id="p">%USERPROFILE%\AppData\LocalLow\Team Cherry\Hollow Knight</code><button id="cp" type="button" data-i18n="copy"></button></p>
+      <div id="err" role="alert"></div>
+      <div class="progress"><h2 id="total"></h2><div class="pbar"><i id="pfill" style="width:0"></i></div></div>
+      <div class="search"><input type="search" id="q" data-i18n-aria="search" autocomplete="off"></div>
+      <div class="row">
+        <button type="button" class="chip" id="showAll" data-i18n="showAll"></button>
+        <button type="button" class="chip" id="hideAll" data-i18n="hideAll"></button>
+        <label class="toggle"><input type="checkbox" id="showGot"> <span data-i18n="showGot"></span></label>
+      </div>
     </div>
     <div class="cats" id="cats"></div>
   </aside>
-</main>
+  <div id="map"></div>
+</div>
 
 <section class="journal" id="tab-journal" hidden>
   <div class="jhead">
@@ -166,76 +187,86 @@ footer{max-width:1400px;margin:0 auto;padding:0 16px 32px;font-size:13px;color:v
 <script src="../i18n.js"></script>
 <script src="data.js"></script>
 <script src="bestiary.js"></script>
+<script src="enemies.js"></script>
 <script>
 const STRINGS = {
   it: {
-    back: "Tutti i giochi", load: "Carica user1.dat",
-    lede: "Carica il salvataggio e vedi sulla mappa cosa ti manca: bruchi, frammenti, amuleti, radici, reliquie e altro. Il file resta sul tuo computer.",
+    back: "Tutti i giochi", load: "Carica il salvataggio (user1.dat)",
     pathA: "Salvataggi in", copy: "copia", copied: "copiato",
-    showGot: "Mostra anche quelli già presi",
-    footer: 'Posizioni e regole del salvataggio da <a href="https://github.com/syyePhenomenol/MapChanger">MapChanger</a> e <a href="https://github.com/homothetyhk/RandomizerMod">RandomizerMod</a>. Mappa di Team Cherry. Progetto amatoriale, non affiliato con Team Cherry.',
+    search: "Cerca", showAll: "Mostra tutto", hideAll: "Nascondi tutto", showGot: "Anche già presi",
+    footer: 'Posizioni da <a href="https://github.com/syyePhenomenol/MapChanger">MapChanger</a> e <a href="https://github.com/homothetyhk/RandomizerMod">RandomizerMod</a>; mappa, nemici e diario dai file del gioco. Progetto amatoriale, non affiliato con Team Cherry.',
     notSave: "Questo file non è un salvataggio di Hollow Knight. Scegli user1.dat (o user2-4.dat) dalla cartella dei salvataggi.",
     total: n => `${n} posizioni`, found: (g, n) => `${g} di ${n} trovati`, inShop: s => `Da ${s}`,
     tabMap: "Mappa", tabJournal: "Diario del Cacciatore",
+    grpCollect: "Collezionabili", grpProgress: "Progressi", grpWorld: "Luoghi e oggetti", grpGeo: "Geo", grpEnemies: "Nemici",
     jHint: "Le voci mai incontrate sono in silhouette. Il numero è quante uccisioni mancano per sbloccare le note del Cacciatore.",
     fAll: "Tutte", fTodo: "Da completare", fDone: "Complete",
     jTotal: (seen, done, n) => `${seen} di ${n} incontrati, ${done} completati`, jTotalNoSave: n => `${n} voci`,
     unseen: "Mai incontrato", left: n => `${n === 1 ? "Manca 1 uccisione" : `Mancano ${n} uccisioni`}`, complete: "Completo",
-    needs: n => n > 1 ? `${n} uccisioni` : "1 uccisione", wiki: "wiki",
+    needs: n => n > 1 ? `${n} uccisioni` : "1 uccisione", wiki: "wiki", onMap: "Mostra sulla mappa",
+    inRoom: n => n > 1 ? `${n} in questa stanza` : "1 in questa stanza", noPins: "Non è un nemico fisso: compare durante un combattimento.",
   },
   en: {
-    back: "All games", load: "Load user1.dat",
-    lede: "Load your save and see on the map what you're missing: grubs, shards, charms, roots, relics and more. The file stays on your computer.",
+    back: "All games", load: "Load your save (user1.dat)",
     pathA: "Saves are in", copy: "copy", copied: "copied",
-    showGot: "Also show collected",
-    footer: 'Locations and save rules from <a href="https://github.com/syyePhenomenol/MapChanger">MapChanger</a> and <a href="https://github.com/homothetyhk/RandomizerMod">RandomizerMod</a>. Map by Team Cherry. Fan project, not affiliated with Team Cherry.',
+    search: "Search", showAll: "Show all", hideAll: "Hide all", showGot: "Include collected",
+    footer: 'Locations from <a href="https://github.com/syyePhenomenol/MapChanger">MapChanger</a> and <a href="https://github.com/homothetyhk/RandomizerMod">RandomizerMod</a>; map, enemies and journal from the game files. Fan project, not affiliated with Team Cherry.',
     notSave: "This isn't a Hollow Knight save. Pick user1.dat (or user2-4.dat) from the saves folder.",
     total: n => `${n} locations`, found: (g, n) => `${g} of ${n} found`, inShop: s => `From ${s}`,
     tabMap: "Map", tabJournal: "Hunter's Journal",
+    grpCollect: "Collectibles", grpProgress: "Progression", grpWorld: "Places and items", grpGeo: "Geo", grpEnemies: "Enemies",
     jHint: "Entries you've never met are shown as silhouettes. The number is how many kills are left to unlock the Hunter's notes.",
     fAll: "All", fTodo: "To complete", fDone: "Complete",
     jTotal: (seen, done, n) => `${seen} of ${n} encountered, ${done} completed`, jTotalNoSave: n => `${n} entries`,
     unseen: "Never encountered", left: n => `${n} kill${n === 1 ? "" : "s"} left`, complete: "Complete",
-    needs: n => `${n} kill${n === 1 ? "" : "s"}`, wiki: "wiki",
+    needs: n => `${n} kill${n === 1 ? "" : "s"}`, wiki: "wiki", onMap: "Show on map",
+    inRoom: n => `${n} in this room`, noPins: "Not a fixed enemy: it only appears during a fight.",
   },
 };
-// [it, en]; order is the sidebar order, completion-relevant first
-const GROUPS = {
-  MaskShards: ["Frammenti di maschera", "Mask shards"], VesselFragments: ["Frammenti di vaso", "Vessel fragments"],
-  CharmNotches: ["Tacche per amuleti", "Charm notches"], PaleOre: ["Minerale pallido", "Pale ore"],
-  Charms: ["Amuleti", "Charms"], Skills: ["Abilità e incantesimi", "Skills and spells"], Dreamers: ["Sognatori", "Dreamers"],
-  Grubs: ["Larve", "Grubs"], WhisperingRoots: ["Radici sussurranti", "Whispering roots"], Shops: ["Negozi", "Shops"],
-  Maps: ["Mappe", "Maps"], Stags: ["Stazioni del cervo", "Stag stations"], Keys: ["Chiavi", "Keys"],
-  Relics: ["Reliquie", "Relics"], RancidEggs: ["Uova rancide", "Rancid eggs"], BossEssence: ["Essenza dei boss", "Boss essence"],
-  GrimmkinFlames: ["Fiamme dei Grimmkin", "Grimmkin flames"], JournalEntries: ["Voci del diario", "Journal entries"],
-  GeoChests: ["Forzieri di geo", "Geo chests"], BossGeo: ["Geo dei boss", "Boss geo"], Mimics: ["Larve mimiche", "Grub mimics"],
-  GeoRocks: ["Rocce di geo", "Geo rocks"],
-};
-const HIDDEN_BY_DEFAULT = new Set(["GeoRocks"]);
-// Pin art from MapChanger (GPL-3.0), one per category.
-const PIN = {
-  MaskShards: "Mask", VesselFragments: "Vessel", CharmNotches: "Notch", PaleOre: "Ore", Charms: "Charm", Skills: "Skill",
-  Dreamers: "Dreamer", Grubs: "Grub", WhisperingRoots: "Root", Shops: "Shop", Maps: "Map", Stags: "Stag", Keys: "Key",
-  Relics: "Relic", RancidEggs: "Egg", BossEssence: "EssenceBoss", GrimmkinFlames: "Flame", JournalEntries: "Journal",
-  GeoChests: "Geo", BossGeo: "Geo", Mimics: "UnknownGrub", GeoRocks: "Rock",
-};
-const icons = {};
-const pinIcon = (g, state) => icons[g + state] ??= L.icon({ iconUrl: `pins/${PIN[g]}.png`, iconSize: [30, 30], className: `pin ${state}` });
+// Sidebar groups -> categories: [it, en, pin art, marker colour]
+const GROUPS = [
+  ["grpCollect", {
+    MaskShards: ["Frammenti di maschera", "Mask shards", "Mask", "#9b3434"], VesselFragments: ["Frammenti di vaso", "Vessel fragments", "Vessel", "#9b3434"],
+    CharmNotches: ["Tacche per amuleti", "Charm notches", "Notch", "#9b3434"], PaleOre: ["Minerale pallido", "Pale ore", "Ore", "#9b3434"],
+    Grubs: ["Larve", "Grubs", "Grub", "#3d7d4f"], WhisperingRoots: ["Radici sussurranti", "Whispering roots", "Root", "#a3842a"],
+    Relics: ["Reliquie", "Relics", "Relic", "#2f5f8f"], RancidEggs: ["Uova rancide", "Rancid eggs", "Egg", "#2f5f8f"],
+    GrimmkinFlames: ["Fiamme dei Grimmkin", "Grimmkin flames", "Flame", "#a33a2a"],
+  }],
+  ["grpProgress", {
+    Charms: ["Amuleti", "Charms", "Charm", "#5b4a9b"], Skills: ["Abilità e incantesimi", "Skills and spells", "Skill", "#5b4a9b"],
+    Dreamers: ["Sognatori", "Dreamers", "Dreamer", "#5b4a9b"], BossEssence: ["Essenza dei boss", "Boss essence", "EssenceBoss", "#a3842a"],
+    JournalEntries: ["Voci del diario", "Journal entries", "Journal", "#2c5a6a"],
+  }],
+  ["grpWorld", {
+    Shops: ["Negozi", "Shops", "Shop", "#3e6c74"], Maps: ["Mappe", "Maps", "Map", "#3e6c74"], Stags: ["Stazioni del cervo", "Stag stations", "Stag", "#3e6c74"],
+    Keys: ["Chiavi", "Keys", "Key", "#3e6c74"],
+  }],
+  ["grpGeo", {
+    GeoChests: ["Forzieri di geo", "Geo chests", "Geo", "#7c6436"], BossGeo: ["Geo dei boss", "Boss geo", "Geo", "#7c6436"],
+    Mimics: ["Larve mimiche", "Grub mimics", "UnknownGrub", "#7c6436"], GeoRocks: ["Rocce di geo", "Geo rocks", "Rock", "#7c6436"],
+  }],
+  ["grpEnemies", { Journal: ["Diario del Cacciatore", "Hunter's Journal", null, "#24465a"] }],
+];
+const CAT = Object.assign({}, ...GROUPS.map(g => g[1]));
+const HIDDEN_BY_DEFAULT = new Set(["GeoRocks", "Journal"]);
 const t = I18N.t;
-const gname = g => GROUPS[g][I18N.lang === "en" ? 1 : 0];
+const en = () => I18N.lang === "en";
+const gname = g => CAT[g][en() ? 1 : 0];
+const zone = k => (HK.zones[k] || ["", ""])[en() ? 0 : 1];
 const pretty = s => s.replace(/^[^-]+-/, "").replace(/_/g, " ");
-const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const B = HK_BESTIARY;
+const beastName = e => (en() ? e.en : e.it) || e.en;
 
 // A save is a .NET BinaryFormatter string record holding base64 of AES-256-ECB(JSON).
 const KEY = new TextEncoder().encode("UKu52ePUBwetZ9wNX88o54dnfKRu0T1l");
 function parseSave(buf) {
   const b = new Uint8Array(buf);
-  if (b[0] === 0x7b) return JSON.parse(new TextDecoder().decode(b)); // already-decrypted (modded) save
+  if (b[0] === 0x7b) return JSON.parse(new TextDecoder().decode(b));
   if (b[17] !== 6) throw new Error(t("notSave"));
   let p = 22, len = 0, shift = 0, x;
   do { x = b[p++]; len |= (x & 127) << shift; shift += 7; } while (x & 128);
-  const b64 = new TextDecoder("latin1").decode(b.subarray(p, p + len));
-  const cipher = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+  const cipher = Uint8Array.from(atob(new TextDecoder("latin1").decode(b.subarray(p, p + len))), c => c.charCodeAt(0));
   const plain = new aesjs.ModeOfOperation.ecb(KEY).decrypt(cipher);
   return JSON.parse(new TextDecoder().decode(plain.subarray(0, plain.length - plain[plain.length - 1])));
 }
@@ -259,109 +290,202 @@ function checker(save) {
   return has;
 }
 
-// One row per collectible; shop locations expand into one row per purchase.
+// Rows: one per collectible (shops expand into purchases). Enemy pins come from HK_ENEMIES.
 const ROWS = HK.locs.flatMap((l, i) => l.sub
   ? l.sub.map(([name, tr]) => ({ loc: i, g: l.g, a: l.a, name: name.replace(/_/g, " "), place: l.n.replace(/_/g, " "), tr }))
   : [{ loc: i, g: l.g, a: l.a, name: pretty(l.n), tr: l.t }]);
-let got = null; // Set of row indexes collected, null before a save is loaded
-const shown = new Set(Object.keys(GROUPS).filter(g => !HIDDEN_BY_DEFAULT.has(g)));
+const ENEMY_PINS = B.entries.flatMap((e, ei) => (HK_ENEMIES[e.id] || []).map(([x, y, a, n]) => ({ ei, x, y, a, n })));
+let got = null, pd = null, filter = "all", query = "";
+const shown = new Set(Object.keys(CAT).filter(g => !HIDDEN_BY_DEFAULT.has(g)));
 const open = new Set();
 
-// Map: CRS.Simple over the stitched map image, y grows downward in data so flip it.
+function beastState(e) {
+  if (!pd) return { cls: "", text: t("needs", Math.max(e.k, 1)) };
+  if (!pd["killed" + e.id]) return { cls: "unseen", text: t("unseen") };
+  const left = pd["kills" + e.id] || 0;
+  return left > 0 ? { cls: "", text: t("left", left), pct: 100 * (e.k - left) / e.k } : { cls: "done", text: t("complete") };
+}
+
+// ---- map
 const [W, H] = HK.size;
-const map = L.map("map", { crs: L.CRS.Simple, minZoom: -3, maxZoom: 1, zoomSnap: 0.25, attributionControl: false });
+const map = L.map("map", { crs: L.CRS.Simple, minZoom: -3, maxZoom: 1, zoomSnap: 0.25, attributionControl: false, zoomControl: true });
 const bounds = [[-H, 0], [0, W]];
 L.imageOverlay("map.webp", bounds).addTo(map);
 map.fitBounds(bounds);
-map.setMaxBounds(L.latLngBounds(bounds).pad(0.2));
-const markers = HK.locs.map(l => L.marker([-l.y, l.x], { icon: pinIcon(l.g, "") }));
-const layer = L.layerGroup().addTo(map);
+map.setMaxBounds(L.latLngBounds(bounds).pad(0.15));
+const labelLayer = L.layerGroup().addTo(map);
+const pinLayer = L.layerGroup().addTo(map);
+// Labels grow with the zoom like printed map text; sub-areas only appear once there is room for them.
+const updateZoomClass = () => {
+  const el = document.getElementById("map"), s = 2 ** map.getZoom();
+  el.classList.toggle("zoom-far", map.getZoom() < -1.6);
+  el.style.setProperty("--fa", Math.max(11, Math.min(40, 40 * s)) + "px");
+  el.style.setProperty("--fs", Math.max(10, Math.min(22, 24 * s)) + "px");
+};
+map.on("zoomend", updateZoomClass); updateZoomClass();
+
+function drawLabels() {
+  labelLayer.clearLayers();
+  for (const l of HK.labels) {
+    L.marker([-l.y, l.x], { interactive: false, keyboard: false,
+      icon: L.divIcon({ className: "", html: `<div class="lbl ${l.k}">${esc(en() ? l.en : l.it)}</div>`, iconSize: [0, 0] }) }).addTo(labelLayer);
+  }
+}
+
+const faceStyle = (i, px) => {
+  const k = px / B.cell;
+  return `background-image:url(bestiary.webp);background-size:${B.cols * B.cell * k}px auto;background-position:-${(i % B.cols) * B.cell * k}px -${Math.floor(i / B.cols) * B.cell * k}px`;
+};
+const markerIcon = (g, state, inner) => L.divIcon({ className: "", iconSize: [32, 32], iconAnchor: [3, 31], popupAnchor: [13, -30],
+  html: `<div class="mk ${state}" style="--c:${CAT[g][3]}">${inner}</div>` });
+const matches = s => !query || s.toLowerCase().includes(query);
 
 function locState(i) {
   const rows = ROWS.map((r, k) => [r, k]).filter(([r]) => r.loc === i);
   const n = got ? rows.filter(([, k]) => got.has(k)).length : 0;
-  return { rows, missing: rows.length - n, done: got && n === rows.length };
+  return { rows, done: got && n === rows.length };
 }
 
-function popup(i) {
+function itemPopup(i) {
   const l = HK.locs[i], { rows } = locState(i);
-  if (!l.sub) return `<h4>${esc(pretty(l.n))}</h4><p>${esc(gname(l.g))}, ${esc(l.a)}</p>`;
-  return `<h4>${esc(l.n.replace(/_/g, " "))}</h4><p>${esc(l.a)}</p><ul>${rows.map(([r, k]) =>
-    `<li class="${got && got.has(k) ? "got" : ""}">${esc(r.name)}</li>`).join("")}</ul>`;
+  const head = `<h4>${esc(l.sub ? l.n.replace(/_/g, " ") : pretty(l.n))}</h4><p class="meta">${esc(gname(l.g))}, ${esc(zone(l.a))}</p>`;
+  return l.sub ? head + `<ul>${rows.map(([r, k]) => `<li class="${got && got.has(k) ? "got" : ""}">${esc(r.name)}</li>`).join("")}</ul>` : head;
 }
+function enemyPopup(p) {
+  const e = B.entries[p.ei], s = beastState(e);
+  return `<h4>${esc(beastName(e))}</h4><p class="meta">${esc(zone(p.a))}, ${t("inRoom", p.n)}</p>
+    <p class="st ${s.cls === "done" ? "done" : ""}">${esc(s.text)}</p>
+    ${e.w ? `<p><a href="https://hollowknight.wiki/w/${encodeURIComponent(e.w)}" target="_blank" rel="noopener">${t("wiki")}</a></p>` : ""}`;
+}
+
+const itemMarkers = HK.locs.map((l, i) => L.marker([-l.y, l.x]).bindPopup(() => itemPopup(i)));
+const enemyMarkers = ENEMY_PINS.map(p => L.marker([-p.y, p.x]).bindPopup(() => enemyPopup(p)));
+let highlight = null;
 
 function drawMap() {
-  layer.clearLayers();
+  pinLayer.clearLayers();
   const showGot = document.getElementById("showGot").checked;
   HK.locs.forEach((l, i) => {
     if (!shown.has(l.g)) return;
     const s = locState(i);
-    if (s.done && !showGot) return;
-    const m = markers[i];
-    m.setIcon(pinIcon(l.g, s.done ? "got" : got ? "miss" : ""));
+    if (s.done && !showGot && highlight !== "i" + i) return;
+    if (!matches(l.n.replace(/_/g, " ") + " " + s.rows.map(([r]) => r.name).join(" "))) return;
+    const m = itemMarkers[i];
+    m.setIcon(markerIcon(l.g, (s.done ? "got" : "") + (highlight === "i" + i ? " hit" : ""), `<img src="pins/${CAT[l.g][2]}.png" alt="">`));
     m.setZIndexOffset(s.done ? -1000 : 0);
-    m.unbindTooltip().bindTooltip(l.sub ? l.n.replace(/_/g, " ") : pretty(l.n), { direction: "top", offset: [0, -14] });
-    m.unbindPopup().bindPopup(() => popup(i));
-    m.addTo(layer);
+    m.unbindTooltip().bindTooltip(l.sub ? l.n.replace(/_/g, " ") : pretty(l.n), { direction: "top", offset: [13, -30] });
+    m.addTo(pinLayer);
+  });
+  if (shown.has("Journal")) ENEMY_PINS.forEach((p, j) => {
+    const e = B.entries[p.ei], s = beastState(e);
+    if (s.cls === "done" && !showGot && highlight !== "e" + p.ei) return;
+    if (!matches(beastName(e) + " " + e.en)) return;
+    const m = enemyMarkers[j];
+    m.setIcon(markerIcon("Journal", (s.cls === "done" ? "got" : "") + (highlight === "e" + p.ei ? " hit" : ""), `<span class="face" style="${faceStyle(p.ei, 24)}"></span>`));
+    m.unbindTooltip().bindTooltip(beastName(e), { direction: "top", offset: [13, -30] });
+    m.addTo(pinLayer);
   });
 }
 
+// ---- sidebar
 function drawList() {
   const showGot = document.getElementById("showGot").checked;
-  const groups = Object.keys(GROUPS).map(g => {
-    const rows = ROWS.map((r, k) => [r, k]).filter(([r]) => r.g === g);
-    const n = got ? rows.filter(([, k]) => got.has(k)).length : 0;
-    const list = rows.filter(([, k]) => showGot || !got || !got.has(k));
-    const areas = {};
-    for (const [r, k] of list) (areas[r.a] ??= []).push([r, k]);
-    const body = Object.entries(areas).map(([a, rs]) => `<div class="area">${esc(a)}</div>${rs.map(([r, k]) =>
-      `<li><button type="button" data-loc="${r.loc}">${esc(r.name)}${r.place ? ` <small>${esc(t("inShop", r.place))}</small>` : ""}</button></li>`).join("")}`).join("");
-    return `<details class="cat${got && n === rows.length ? " done" : ""}" data-g="${g}"${open.has(g) ? " open" : ""}>
-      <summary><input type="checkbox" data-g="${g}" ${shown.has(g) ? "checked" : ""} aria-label="${esc(gname(g))}"><img src="pins/${PIN[g]}.png" alt="">
-        <span>${esc(gname(g))}</span><span class="n">${got ? `${n} / ` : ""}${rows.length}</span>
-        ${got ? `<span class="bar"><i style="width:${100 * n / rows.length}%"></i></span>` : ""}</summary>
-      <ul>${body}</ul></details>`;
-  });
-  document.getElementById("cats").innerHTML = groups.join("");
+  let html = "";
+  for (const [gkey, cats] of GROUPS) {
+    html += `<div class="grp">${t(gkey)}</div>`;
+    for (const g of Object.keys(cats)) {
+      let rows, n, total, body;
+      if (g === "Journal") {
+        const ents = B.entries.map((e, i) => [e, i, beastState(e)]);
+        total = ents.length; n = pd ? ents.filter(([, , s]) => s.cls === "done").length : 0;
+        body = ents.filter(([e, , s]) => (showGot || s.cls !== "done") && matches(beastName(e) + " " + e.en))
+          .map(([e, i, s]) => `<li class="${s.cls === "done" ? "got" : ""}"><button type="button" data-e="${i}">${esc(beastName(e))}</button> <small>${esc(s.text)}</small></li>`).join("");
+      } else {
+        rows = ROWS.map((r, k) => [r, k]).filter(([r]) => r.g === g);
+        total = rows.length; n = got ? rows.filter(([, k]) => got.has(k)).length : 0;
+        const list = rows.filter(([r, k]) => (showGot || !got || !got.has(k)) && matches(r.name + " " + (r.place || "")));
+        const areas = {};
+        for (const [r, k] of list) (areas[r.a] ??= []).push([r, k]);
+        body = Object.entries(areas).map(([a, rs]) => `<div class="area">${esc(zone(a))}</div>${rs.map(([r, k]) =>
+          `<li class="${got && got.has(k) ? "got" : ""}"><button type="button" data-loc="${r.loc}">${esc(r.name)}</button>${r.place ? ` <small>${esc(t("inShop", r.place))}</small>` : ""}</li>`).join("")}`).join("");
+      }
+      const ico = cats[g][2] ? `<img src="pins/${cats[g][2]}.png" alt="">` : `<span style="width:20px;height:20px;border-radius:50%;${faceStyle(0, 20)}"></span>`;
+      html += `<details class="cat${shown.has(g) ? "" : " off"}${got && n === total ? " done" : ""}" data-g="${g}"${open.has(g) || query ? " open" : ""}>
+        <summary><button type="button" class="ico" data-toggle="${g}" style="--c:${cats[g][3]}" aria-pressed="${shown.has(g)}" aria-label="${esc(gname(g))}">${ico}</button>
+        <span class="nm">${esc(gname(g))}</span><span class="n">${got ? `${n}/` : ""}${total}</span></summary><ul>${body}</ul></details>`;
+    }
+  }
+  document.getElementById("cats").innerHTML = html;
   const n = got ? got.size : 0;
   document.getElementById("total").textContent = got ? t("found", n, ROWS.length) : t("total", ROWS.length);
+  document.getElementById("pfill").style.width = got ? `${100 * n / ROWS.length}%` : "0";
 }
 
-let pd = null, filter = "all";
+// ---- journal grid
 function drawJournal() {
-  const B = HK_BESTIARY, lang = I18N.lang;
-  const stat = e => {
-    if (!pd) return { cls: "", text: t("needs", Math.max(e.k, 1)) };
-    if (!pd["killed" + e.id]) return { cls: "unseen", text: t("unseen") };
-    const left = pd["kills" + e.id] || 0;
-    return left > 0 ? { cls: "", text: t("left", left), pct: 100 * (e.k - left) / e.k } : { cls: "done", text: t("complete") };
-  };
-  const rows = B.entries.map((e, i) => [e, i, stat(e)]);
+  const rows = B.entries.map((e, i) => [e, i, beastState(e)]);
   const seen = rows.filter(([, , s]) => s.cls !== "unseen").length, done = rows.filter(([, , s]) => s.cls === "done").length;
   document.getElementById("jtotal").textContent = pd ? t("jTotal", seen, done, rows.length) : t("jTotalNoSave", rows.length);
   document.getElementById("beasts").innerHTML = rows
     .filter(([, , s]) => filter === "all" || !pd || (filter === "done") === (s.cls === "done"))
-    .map(([e, i, s]) => {
-      const pos = `-${(i % B.cols) * B.cell * .667}px -${Math.floor(i / B.cols) * B.cell * .667}px`;
-      const size = `${B.cols * B.cell * .667}px auto`;
-      return `<li class="beast ${s.cls}">
-        <div class="face" style="background-image:url(bestiary.webp);background-position:${pos};background-size:${size}" role="img" aria-label="${esc(e[lang] || e.en)}"></div>
-        <div><h3>${esc(e[lang] || e.en)}</h3><p class="st">${esc(s.text)}</p>
-          <p>${esc(e.a)}${e.w ? ` <a href="https://hollowknight.wiki/w/${encodeURIComponent(e.w)}" target="_blank" rel="noopener">${t("wiki")}</a>` : ""}</p>
-          ${s.pct !== undefined ? `<div class="kbar"><i style="width:${s.pct}%"></i></div>` : ""}</div></li>`;
-    }).join("");
+    .map(([e, i, s]) => `<li class="beast ${s.cls}">
+      <div class="face" style="${faceStyle(i, 64)}" role="img" aria-label="${esc(beastName(e))}"></div>
+      <div><h3>${esc(beastName(e))}</h3><p class="st">${esc(s.text)}</p><p>${esc(e.a)}</p>
+        <p>${HK_ENEMIES[e.id] ? `<button type="button" class="onmap" data-e="${i}">${t("onMap")}</button> · ` : ""}${e.w ? `<a href="https://hollowknight.wiki/w/${encodeURIComponent(e.w)}" target="_blank" rel="noopener">${t("wiki")}</a>` : ""}</p>
+        ${s.pct !== undefined ? `<div class="kbar"><i style="width:${s.pct}%"></i></div>` : ""}</div></li>`).join("");
 }
 
 function render() { drawMap(); drawList(); drawJournal(); }
 
-document.querySelector(".tabs").addEventListener("click", e => {
-  const b = e.target.closest("[data-tab]");
-  if (!b) return;
-  document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-selected", x === b));
-  document.getElementById("tab-map").hidden = b.dataset.tab !== "map";
-  document.getElementById("tab-journal").hidden = b.dataset.tab !== "journal";
-  if (b.dataset.tab === "map") map.invalidateSize();
+function showTab(name) {
+  document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-selected", x.dataset.tab === name));
+  document.getElementById("tab-map").hidden = name !== "map";
+  document.getElementById("tab-journal").hidden = name !== "journal";
+  if (name === "map") map.invalidateSize();
+}
+function focusEnemy(ei) {
+  const j = ENEMY_PINS.findIndex(p => p.ei === ei);
+  showTab("map");
+  if (j < 0) return;
+  shown.add("Journal"); highlight = "e" + ei; render();
+  const p = ENEMY_PINS[j];
+  map.flyTo([-p.y, p.x], 0, { duration: .6 });
+  setTimeout(() => enemyMarkers[j].openPopup(), 650);
+}
+
+document.getElementById("cats").addEventListener("click", e => {
+  const tog = e.target.closest("[data-toggle]");
+  if (tog) {
+    e.preventDefault();
+    const g = tog.dataset.toggle;
+    shown.has(g) ? shown.delete(g) : shown.add(g);
+    drawMap(); drawList();
+    return;
+  }
+  const btn = e.target.closest("button[data-loc]");
+  if (btn) {
+    const i = +btn.dataset.loc, l = HK.locs[i];
+    shown.add(l.g); highlight = "i" + i; render();
+    map.flyTo([-l.y, l.x], 0, { duration: .6 });
+    setTimeout(() => itemMarkers[i].openPopup(), 650);
+    return;
+  }
+  const eb = e.target.closest("button[data-e]");
+  if (eb) focusEnemy(+eb.dataset.e);
 });
+document.getElementById("beasts").addEventListener("click", e => {
+  const b = e.target.closest("button[data-e]");
+  if (b) focusEnemy(+b.dataset.e);
+});
+document.getElementById("cats").addEventListener("toggle", e => {
+  const g = e.target.dataset.g;
+  if (g && !query) e.target.open ? open.add(g) : open.delete(g);
+}, true);
+document.getElementById("showGot").onchange = render;
+document.getElementById("showAll").onclick = () => { Object.keys(CAT).forEach(g => shown.add(g)); drawMap(); drawList(); };
+document.getElementById("hideAll").onclick = () => { shown.clear(); drawMap(); drawList(); };
+document.getElementById("q").addEventListener("input", e => { query = e.target.value.trim().toLowerCase(); drawMap(); drawList(); });
+document.querySelector(".tabs").addEventListener("click", e => { const b = e.target.closest("[data-tab]"); if (b) showTab(b.dataset.tab); });
 document.querySelector(".filters").addEventListener("click", e => {
   const b = e.target.closest("[data-f]");
   if (!b) return;
@@ -369,30 +493,6 @@ document.querySelector(".filters").addEventListener("click", e => {
   document.querySelectorAll(".filters button").forEach(x => x.setAttribute("aria-pressed", x === b));
   drawJournal();
 });
-
-document.getElementById("cats").addEventListener("click", e => {
-  const box = e.target.closest("input[data-g]");
-  if (box) {
-    e.stopPropagation();
-    box.checked ? shown.add(box.dataset.g) : shown.delete(box.dataset.g);
-    drawMap();
-    return;
-  }
-  const btn = e.target.closest("button[data-loc]");
-  if (btn) {
-    const i = +btn.dataset.loc, l = HK.locs[i];
-    shown.add(l.g);
-    drawMap();
-    map.flyTo([-l.y, l.x], 1, { duration: .6 });
-    markers[i].openPopup();
-    document.getElementById("map").scrollIntoView({ behavior: "smooth", block: "nearest" });
-  }
-});
-document.getElementById("cats").addEventListener("toggle", e => {
-  const g = e.target.dataset.g;
-  if (g) e.target.open ? open.add(g) : open.delete(g);
-}, true);
-document.getElementById("showGot").onchange = render;
 
 async function load(file) {
   const err = document.getElementById("err");
@@ -414,7 +514,11 @@ document.getElementById("cp").onclick = e => {
   navigator.clipboard?.writeText(document.getElementById("p").textContent);
   e.target.textContent = t("copied");
 };
-I18N.init(STRINGS, () => { document.getElementById("err").textContent = ""; render(); });
+I18N.init(STRINGS, () => {
+  document.getElementById("err").textContent = "";
+  document.getElementById("q").placeholder = t("search");
+  drawLabels(); render();
+});
 </script>
 </body>
 </html>

@@ -49,11 +49,7 @@ def enc(t):
     if k == "ConjunctionTrackingItem": return ["c", [enc(x) for x in t["TrackingItems"]]]
     raise ValueError(k)
 
-AREA = {"Crossroads": "Forgotten Crossroads", "Town_Tutorial": "Dirtmouth / King's Pass", "Green_Path": "Greenpath",
-        "Fungal Wastes": "Fungal Wastes", "Fog_Canyon": "Fog Canyon", "Queens_Gardens": "Queen's Gardens",
-        "City of Tears": "City of Tears", "Waterways": "Royal Waterways", "Deepnest": "Deepnest",
-        "Kingdoms_Edge": "Kingdom's Edge", "Crystal Peak": "Crystal Peak", "Resting_Grounds": "Resting Grounds",
-        "Ancient Basin": "Ancient Basin", "Cliffs": "Howling Cliffs"}
+labels = json.load(open("hk_labels.json", encoding="utf8"))
 
 out = []
 for name, l in locs.items():
@@ -63,8 +59,8 @@ for name, l in locs.items():
     ml = next((m for m in l["MapLocations"] if m["MappedScene"] in rooms["rooms"]), None)
     if not ml:
         print("unplaced", name); continue
-    bx, by, area = rooms["rooms"][ml["MappedScene"]]
-    rec = {"n": name, "g": g, "a": AREA[area],
+    bx, by, area = rooms["rooms"][ml["MappedScene"]][:3]
+    rec = {"n": name, "g": g, "a": area,
            "x": round(bx + ml["X"] * rooms["scale"]), "y": round(by - ml["Y"] * rooms["scale"])}
     t = enc(track[name])
     if g == "Shops":
@@ -76,4 +72,4 @@ for name, l in locs.items():
 print(len(out), collections.Counter(r["g"] for r in out))
 with open(sys.argv[1], "w", encoding="utf8") as f:
     f.write("// Generated from MapChanger + RandomizerMod data (GPL-3.0) and the game's map layout. Do not edit by hand.\n")
-    f.write("window.HK = " + json.dumps({"size": rooms["size"], "locs": out}, separators=(",", ":"), ensure_ascii=False) + ";\n")
+    f.write("window.HK = " + json.dumps({"size": rooms["size"], "zones": labels["zones"], "labels": labels["labels"], "locs": out}, separators=(",", ":"), ensure_ascii=False) + ";\n")
