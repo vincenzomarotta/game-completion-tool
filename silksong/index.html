@@ -227,7 +227,7 @@ const STRINGS = {
     jTotal: (seen, done, n) => `${seen} di ${n} incontrati, ${done} completati`, jTotalNoSave: n => `${n} voci`,
     unseen: "Mai incontrato", left: n => `${n === 1 ? "Manca 1 uccisione" : `Mancano ${n} uccisioni`}`, complete: "Completo",
     needs: n => n > 1 ? `${n} uccisioni` : "1 uccisione", onMap: "Mostra sulla mappa",
-    inRoom: n => n === 0 ? "Boss o arena: si combatte in questa stanza" : n > 1 ? `${n} in questa stanza` : "1 in questa stanza", engNames: "Nomi di oggetti e descrizioni in inglese.",
+    inRoom: n => n === 0 ? "Boss o arena: si combatte in questa stanza" : n > 1 ? `${n} in questa stanza` : "1 in questa stanza",
   },
   en: {
     tabAch: "Achievements",
@@ -244,7 +244,7 @@ const STRINGS = {
     jTotal: (seen, done, n) => `${seen} of ${n} encountered, ${done} completed`, jTotalNoSave: n => `${n} entries`,
     unseen: "Never encountered", left: n => `${n} kill${n === 1 ? "" : "s"} left`, complete: "Complete",
     needs: n => `${n} kill${n === 1 ? "" : "s"}`, onMap: "Show on map",
-    inRoom: n => n === 0 ? "Boss or arena: fought in this room" : `${n} in this room`, engNames: "",
+    inRoom: n => n === 0 ? "Boss or arena: fought in this room" : `${n} in this room`,
   },
 };
 // Sidebar groups -> categories: [it, en, pin art, marker colour]. Cache sections are their own categories.
@@ -281,10 +281,10 @@ const HIDDEN_BY_DEFAULT = new Set(["Rosary Caches", "Shell Shard Caches", "Break
 const t = I18N.t;
 const en = () => I18N.lang === "en";
 const gname = g => (CAT[g] || [g, g])[en() ? 1 : 0];
-const zone = k => (SS.zones[k] || [k, k])[en() ? 0 : 1];
+const zone = k => (SS.zones[k] || [k])[0];  // game names stay in English in both languages
 const catOf = it => (it.c === "Caches & Secrets" || it.c === "Unique Spawns") && CAT[it.s] ? it.s : it.c;
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
-const beastName = e => en() ? e.n : (e.it || e.n);
+const beastName = e => e.n;
 
 // Same container as Hollow Knight: .NET string record holding base64 of AES-256-ECB(JSON).
 const KEY = new TextEncoder().encode("UKu52ePUBwetZ9wNX88o54dnfKRu0T1l");
@@ -376,7 +376,7 @@ map.on("zoomend", updateZoomClass); updateZoomClass();
 function drawLabels() {
   labelLayer.clearLayers();
   for (const l of SS.labels) L.marker([-l.y, l.x], { interactive: false, keyboard: false,
-    icon: L.divIcon({ className: "", html: `<div class="lbl ${l.k}">${esc(en() ? l.en : l.it)}</div>`, iconSize: [0, 0] }) }).addTo(labelLayer);
+    icon: L.divIcon({ className: "", html: `<div class="lbl ${l.k}">${esc(l.en)}</div>`, iconSize: [0, 0] }) }).addTo(labelLayer);
 }
 const markerIcon = (color, state, inner) => L.divIcon({ className: "", iconSize: [32, 32], iconAnchor: [3, 31], popupAnchor: [13, -30],
   html: `<div class="mk ${state}" style="--c:${color}">${inner}</div>` });

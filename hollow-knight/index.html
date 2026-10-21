@@ -280,11 +280,11 @@ const HIDDEN_BY_DEFAULT = new Set(["GeoRocks", "Journal"]);
 const t = I18N.t;
 const en = () => I18N.lang === "en";
 const gname = g => CAT[g][en() ? 1 : 0];
-const zone = k => (HK.zones[k] || ["", ""])[en() ? 0 : 1];
+const zone = k => (HK.zones[k] || [""])[0];  // game names stay in English in both languages
 const pretty = s => s.replace(/^[^-]+-/, "").replace(/_/g, " ");
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 const B = HK_BESTIARY;
-const beastName = e => (en() ? e.en : e.it) || e.en;
+const beastName = e => e.en;
 
 // A save is a .NET BinaryFormatter string record holding base64 of AES-256-ECB(JSON).
 const KEY = new TextEncoder().encode("UKu52ePUBwetZ9wNX88o54dnfKRu0T1l");
@@ -357,7 +357,7 @@ function drawLabels() {
   labelLayer.clearLayers();
   for (const l of HK.labels) {
     L.marker([-l.y, l.x], { interactive: false, keyboard: false,
-      icon: L.divIcon({ className: "", html: `<div class="lbl ${l.k}">${esc(en() ? l.en : l.it)}</div>`, iconSize: [0, 0] }) }).addTo(labelLayer);
+      icon: L.divIcon({ className: "", html: `<div class="lbl ${l.k}">${esc(l.en)}</div>`, iconSize: [0, 0] }) }).addTo(labelLayer);
   }
 }
 

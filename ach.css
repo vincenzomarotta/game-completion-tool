@@ -13,9 +13,12 @@
 .ach h3{font-size:15px;font-weight:600;line-height:1.25;margin:0}
 .ach p{margin:3px 0 0;font-size:14px}
 .ach-d{color:var(--ach-ink)}
-.ach-how{margin-top:4px;font-size:14px}
+.ach-how{margin-top:4px;font-size:14px;max-width:80ch}
 .ach-how summary{cursor:pointer;color:var(--ach-accent);font-size:13px;width:max-content}
-.ach-how p{color:var(--ach-ink);opacity:.85;line-height:1.45}
+.ach-how p,.ach-how ol{color:var(--ach-ink);opacity:.88;line-height:1.45}
+.ach-how ol{margin:6px 0 0;padding-left:20px;font-size:14px}
+.ach-how li{margin:3px 0}
+.achs > .ach.open-guide{grid-column:1/-1}
 .ach-st{font-size:13px!important;color:var(--ach-accent)}
 .ach.done .ach-st{color:var(--ach-done)}
 .ach.unknown .ach-st{color:var(--ach-dim)}

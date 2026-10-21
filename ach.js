@@ -1,4 +1,5 @@
-// Shared achievements list: icons and EN/IT text from window.ACH, how-to from window.GUIDE ([en, it, it description?]).
+// Shared achievements list: icons and names from window.ACH (always in English, like the games' own names),
+// how-to from window.GUIDE ([en, it], each a paragraph string or an array of numbered steps).
 // ACH_UI.init(container, { wiki, check }) where check(key) is undefined before a save is loaded,
 // null when the save doesn't record that achievement, else true/false. Call ACH_UI.draw() after loading a save.
 const ACH_UI = (() => {
@@ -18,7 +19,7 @@ const ACH_UI = (() => {
   };
   const s = (k, ...a) => { const v = S[I18N.lang][k]; return typeof v === "function" ? v(...a) : v; };
   const esc = v => String(v).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
-  const revealed = new Set();
+  const revealed = new Set(), opened = new Set();  // opened guides span the whole row so long steps stay readable
   let root, opts, filter = "all";
 
   const icon = i => `background-image:url(achievements.webp);background-size:${ACH.cols * 64}px auto;background-position:-${(i % ACH.cols) * 64}px -${Math.floor(i / ACH.cols) * 64}px`;
@@ -40,10 +41,10 @@ const ACH_UI = (() => {
       .filter(([, , st]) => filter === "all" || !loaded || (filter === "done") === (st.cls === "done"))
       .map(([a, i, st]) => {
         const g = (window.GUIDE || {})[a.k], secret = a.h && st.cls !== "done" && !revealed.has(i);
-        const desc = L && g && g[2] ? g[2] : a.d[L];
-        return `<li class="ach ${st.cls}${secret ? " secret" : ""}"><div class="ach-ico" style="${icon(i)}"></div>
-          <div><h3>${esc(a.n[L])}</h3><p class="ach-d">${esc(desc)}</p>
-          ${g ? `<details class="ach-how"><summary>${s("how")}</summary><p>${esc(g[L])}</p></details>` : ""}
+        const how = g && g[L], body = Array.isArray(how) ? `<ol>${how.map(x => `<li>${esc(x)}</li>`).join("")}</ol>` : how ? `<p>${esc(how)}</p>` : "";
+        return `<li class="ach ${st.cls}${secret ? " secret" : ""}${opened.has(i) && body ? " open-guide" : ""}" data-i="${i}"><div class="ach-ico" style="${icon(i)}"></div>
+          <div><h3>${esc(a.n[0])}</h3><p class="ach-d">${esc(a.d[0])}</p>
+          ${body ? `<details class="ach-how"${opened.has(i) ? " open" : ""}><summary>${s("how")}</summary>${body}</details>` : ""}
           ${st.text ? `<p class="ach-st">${esc(st.text)}</p>` : ""}
           ${secret ? `<button type="button" class="ach-reveal" data-a="${i}">${s("reveal")}</button>` : ""}</div></li>`;
       }).join("");
@@ -54,6 +55,12 @@ const ACH_UI = (() => {
     root.innerHTML = `<div class="ach-head"><div><h2 class="ach-total"></h2><p class="ach-hint"></p></div>
       <div class="ach-filters" role="group"><button type="button" data-f="all"></button><button type="button" data-f="todo"></button><button type="button" data-f="done"></button></div></div>
       <ul class="achs"></ul>`;
+    root.addEventListener("toggle", e => {
+      const li = e.target.closest("[data-i]");
+      if (!li) return;
+      e.target.open ? opened.add(+li.dataset.i) : opened.delete(+li.dataset.i);
+      li.classList.toggle("open-guide", e.target.open);
+    }, true);
     root.addEventListener("click", e => {
       const b = e.target.closest("[data-a]"), f = e.target.closest("[data-f]");
       if (b) { revealed.add(+b.dataset.a); draw(); }
