@@ -15,7 +15,10 @@
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 var(--body)}
-main{max-width:1040px;margin:0 auto;padding:72px 16px 80px}
+main{max-width:1040px;margin:0 auto;padding:72px 16px 80px;position:relative}
+.lang{position:absolute;top:20px;right:16px;display:flex;gap:2px}
+.lang button{font:500 14px var(--body);color:var(--dim);background:none;border:0;padding:4px 8px;cursor:pointer;border-radius:4px}
+.lang button[aria-pressed=true]{color:var(--ink);background:rgba(255,255,255,.08)}
 :focus-visible{outline:2px solid var(--ink);outline-offset:4px}
 h1{font:800 clamp(44px,8vw,88px)/.95 var(--display);letter-spacing:-.03em;margin:0 0 20px;max-width:9em}
 .lede{font-size:19px;color:#c8c8d0;max-width:32em;margin:0 0 56px}
@@ -47,10 +50,11 @@ footer a{color:var(--dim)}
 </head>
 <body>
 <main>
+<div class="lang" role="group" aria-label="Language"><button type="button" data-lang="it">IT</button><button type="button" data-lang="en">EN</button></div>
 <h1>Game Completion Tool</h1>
-<p class="lede">Carica il salvataggio, scopri cosa ti manca per il 100% e in quale zona andarlo a cercare. Il file non lascia mai il tuo computer.</p>
+<p class="lede" data-i18n="lede"></p>
 
-<h2>Giochi</h2>
+<h2 data-i18n="games"></h2>
 <div class="shelf">
   <a class="game dd" href="deaths-door/">
     <svg viewBox="0 0 200 300" aria-hidden="true">
@@ -61,21 +65,39 @@ footer a{color:var(--dim)}
     </svg>
     <div>
       <h3>Death's Door</h3>
-      <p>Oggetti luccicanti, semi, vasi, santuari, sfere d'anima, tavolette.</p>
-      <p class="tracks">224 cose da trovare</p>
+      <p data-i18n="ddWhat"></p>
+      <p class="tracks" data-i18n="ddCount"></p>
     </div>
   </a>
 
   <div class="game soon">
     <span class="slot" aria-hidden="true"></span>
     <div>
-      <h3>Prossimo gioco</h3>
-      <p>In lavorazione.</p>
+      <h3 data-i18n="next"></h3>
+      <p data-i18n="wip"></p>
     </div>
   </div>
 </div>
 
-<footer>Progetto amatoriale, non affiliato con gli sviluppatori dei giochi. Codice su <a href="https://github.com/vincenzomarotta/game-completion-tool">GitHub</a>.</footer>
+<footer data-i18n="footer"></footer>
 </main>
+<script src="i18n.js"></script>
+<script>
+const GH = '<a href="https://github.com/vincenzomarotta/game-completion-tool">GitHub</a>';
+I18N.init({
+  it: {
+    lede: "Carica il salvataggio, scopri cosa ti manca per il 100% e in quale zona andarlo a cercare. Il file non lascia mai il tuo computer.",
+    games: "Giochi", ddWhat: "Oggetti luccicanti, semi, vasi, santuari, sfere d'anima, tavolette.", ddCount: "224 cose da trovare",
+    next: "Prossimo gioco", wip: "In lavorazione.",
+    footer: `Progetto amatoriale, non affiliato con gli sviluppatori dei giochi. Codice su ${GH}.`,
+  },
+  en: {
+    lede: "Load your save, see what's left for 100% and which area to look in. The file never leaves your computer.",
+    games: "Games", ddWhat: "Shiny things, seeds, pots, shrines, soul orbs, tablets.", ddCount: "224 things to find",
+    next: "Next game", wip: "In the works.",
+    footer: `Fan project, not affiliated with the games' developers. Code on ${GH}.`,
+  },
+});
+</script>
 </body>
 </html>
